@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Employee Details - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>{{ employee.name }}
+                        <span class="badge bg-success ms-2">Active Employee</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Employee ID:</strong> EMP{{ employee.id }}</p>
+                            <p><strong>Name:</strong> {{ employee.name }}</p>
+                            <p><strong>Email:</strong> {{ employee.email }}</p>
+                            <p><strong>Phone:</strong> {{ employee.phone }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Department:</strong> {{ employee.get('department', 'N/A') }}</p>
+                            <p><strong>Position:</strong> {{ employee.get('position', 'N/A') }}</p>
+                            <p><strong>Join Date:</strong> {{ employee.get('join_date', employee.applied_date.split()[0] if employee.applied_date else 'N/A') }}</p>
+                            <p><strong>Experience:</strong> {{ employee.experience }} years</p>
+                        </div>
+                    </div>
+                    
+                    {% if employee.get('skills') %}
+                    <div class="mt-3">
+                        <h6>Skills & Expertise:</h6>
+                        <p class="text-muted">{{ employee.skills }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if employee.get('salary') %}
+                    <div class="mt-3">
+                        <h6>Salary Information:</h6>
+                        <p class="text-muted">Current Salary: {{ employee.salary }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Employee Actions -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Employee Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a href="{{ url_for('resignation_form', cand_id=employee.id) }}" class="btn btn-danger w-100">
+                                <i class="fas fa-sign-out-alt me-2"></i>Process Resignation
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('employees_page') }}" class="btn btn-secondary w-100">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Employees
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Employee Stats -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Employee Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="border rounded p-3 mb-3">
+                            <h4 class="text-primary">{{ employee.experience }}</h4>
+                            <small class="text-muted">Years Experience</small>
+                        </div>
+                        <div class="border rounded p-3 mb-3">
+                            <h4 class="text-success">{{ employee.get('department', 'N/A') }}</h4>
+                            <small class="text-muted">Department</small>
+                        </div>
+                        <div class="border rounded p-3">
+                            <h4 class="text-info">Active</h4>
+                            <small class="text-muted">Employment Status</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employment History -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Employment Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Joined Company</h6>
+                                <small class="text-muted">{{ employee.get('join_date', employee.applied_date.split()[0] if employee.applied_date else 'N/A') }}</small>
+                            </div>
+                        </div>
+                        {% if employee.requisition_id != '0' %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Recruited via Requisition</h6>
+                                <small class="text-muted">REQ-{{ employee.requisition_id }}</small>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Direct Hire</h6>
+                                <small class="text-muted">Added directly to system</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -23px;
+    top: 5px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border-left: 3px solid #007bff;
+}
+</style>
+{% endblock %}

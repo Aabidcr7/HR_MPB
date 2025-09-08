@@ -503,6 +503,119 @@ def submit_resignation():
     
     return redirect(request.referrer)
 
+# New separate page routes
+@app.route('/requisitions-page')
+def requisitions_page():
+    requisitions_df = read_csv_safe(os.path.join(CSV_FOLDER, 'requisitions.csv'))
+    return render_template('requisitions.html', requisitions=requisitions_df.to_dict('records'))
+
+@app.route('/candidates-page')
+def candidates_page():
+    candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    return render_template('candidates.html', candidates=candidates_df.to_dict('records'))
+
+@app.route('/screening-page')
+def screening_page():
+    candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    # Filter candidates at Applied stage
+    applied_candidates = candidates_df[candidates_df['stage'] == 'Applied'].to_dict('records')
+    return render_template('screening.html', candidates=applied_candidates)
+
+@app.route('/interviews-page')
+def interviews_page():
+    candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    # Filter candidates at Screening stage (ready for interview)
+    screening_candidates = candidates_df[candidates_df['stage'] == 'Screening'].to_dict('records')
+    return render_template('interviews.html', candidates=screening_candidates)
+
+@app.route('/offers-page')
+def offers_page():
+    candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    # Filter candidates at Interview stage (ready for offer)
+    interview_candidates = candidates_df[candidates_df['stage'] == 'Interview'].to_dict('records')
+    # Also get candidates with offers
+    offer_candidates = candidates_df[candidates_df['stage'] == 'Offer'].to_dict('records')
+    return render_template('offers.html', candidates=interview_candidates, offer_candidates=offer_candidates)
+
+@app.route('/onboarding-page')
+def onboarding_page():
+    candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    # Filter candidates at Offer stage (ready for onboarding)
+    offer_candidates = candidates_df[candidates_df['stage'] == 'Offer'].to_dict('records')
+    # Also get recently onboarded
+    onboarded_candidates = candidates_df[candidates_df['stage'] == 'Onboarded'].to_dict('records')
+    return render_template('onboarding_list.html', candidates=offer_candidates, onboarded_candidates=onboarded_candidates)
+
+@app.route('/employees-page')
+def employees_page():
+    candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    # Filter employees (onboarded candidates)
+    employees = candidates_df[candidates_df['stage'] == 'Onboarded'].to_dict('records')
+    return render_template('employees.html', employees=employees)
+
+@app.route('/resignations-page')
+def resignations_page():
+    candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    # Filter resigned candidates
+    resigned_candidates = candidates_df[candidates_df['stage'] == 'Resigned'].to_dict('records')
+    # Also get active employees for resignation processing
+    active_employees = candidates_df[candidates_df['stage'] == 'Onboarded'].to_dict('records')
+    return render_template('resignations_list.html', resigned_candidates=resigned_candidates, active_employees=active_employees)
+
+@app.route('/add-employee-direct', methods=['POST'])
+def add_employee_direct():
+    """Add employee directly to the system (bypass recruitment process)"""
+    try:
+        employee_data = {
+            'id': get_next_id(os.path.join(CSV_FOLDER, 'candidates.csv')),
+            'name': request.form['name'],
+            'email': request.form['email'],
+            'phone': request.form['phone'],
+            'department': request.form['department'],
+            'position': request.form['position'],
+            'join_date': request.form['join_date'],
+            'experience': request.form.get('experience', '0'),
+            'salary': request.form.get('salary', ''),
+            'skills': request.form.get('skills', ''),
+            'stage': 'Onboarded',
+            'applied_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'requisition_id': '0',  # Direct hire, no requisition
+            'resume_filename': '',
+            'current_salary': request.form.get('salary', ''),
+            'expected_salary': request.form.get('salary', ''),
+            'notice_period': '0'
+        }
+        
+        if append_to_csv(employee_data, os.path.join(CSV_FOLDER, 'candidates.csv')):
+            flash('Employee added successfully!', 'success')
+        else:
+            flash('Error adding employee!', 'error')
+            
+    except Exception as e:
+        logging.error(f"Error adding employee: {e}")
+        flash('Error adding employee!', 'error')
+    
+    return redirect(url_for('employees_page'))
+
+@app.route('/employee/<int:emp_id>')
+def employee_detail(emp_id):
+    """Show employee details"""
+    candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    employee_data = candidates_df[(candidates_df['id'] == emp_id) & (candidates_df['stage'] == 'Onboarded')]
+    
+    if employee_data.empty:
+        flash('Employee not found!', 'error')
+        return redirect(url_for('employees_page'))
+    
+    employee = employee_data.to_dict('records')[0]
+    return render_template('employee_detail.html', employee=employee)
+
+# Helper function to read CSV data as dictionaries for compatibility
+def read_csv_data(csv_file_path):
+    """Read CSV file and return as list of dictionaries"""
+    df = read_csv_safe(csv_file_path)
+    return df.to_dict('records')
+
 # Admin download routes
 @app.route('/download/<csv_name>')
 def download_csv(csv_name):
