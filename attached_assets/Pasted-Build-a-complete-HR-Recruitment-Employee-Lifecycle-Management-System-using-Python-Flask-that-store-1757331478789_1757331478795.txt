@@ -1,0 +1,62 @@
+Build a complete HR Recruitment & Employee Lifecycle Management System using Python Flask that stores data in local CSV files. Requirements:
+
+- Use only local CSV files as the persistent storage (no external DB). Provide CSV templates for:
+  - requisitions.csv
+  - candidates.csv
+  - screening.csv
+  - interviews.csv
+  - offers.csv
+  - onboarding.csv
+  - resignations.csv
+
+- Backend:
+  - Flask app (single file `app.py`) with routes for CRUD and workflow transitions described below.
+  - Utility functions to read/write CSV safely and to get next id.
+  - Business rules:
+    - Candidates move only when "Shortlisted" at Screening → Interview; Interview "Shortlisted" → Offer. Rejected/Hold/other statuses are terminal for that stage (remain in that stage).
+    - Requisition can be closed using a "Close Job" button/route.
+  - Routes:
+    - GET /requisitions — list
+    - POST /requisitions — create
+    - POST /requisitions/<req_id>/close — close job
+    - GET /requisitions/<req_id>/candidates — list candidates for requisition
+    - POST /requisitions/<req_id>/candidates — add single candidate (with resume upload saved to local /uploads)
+    - POST /candidates/bulk-upload — handle CSV upload to bulk-add candidates (CSV columns match candidates.csv)
+    - GET /candidates/<cand_id>/resume — stream the resume PDF/DOC
+    - POST /screening — submit screening result (append to screening.csv). If status == Shortlisted move candidate to Interview (create candidate status field or stage field)
+    - POST /interview — submit interview result (append to interviews.csv). If shortlisted move to Offer.
+    - POST /offer — create offer details, auto-generate offer letter HTML->PDF (use pdfkit or weasyprint optional; if not available, provide HTML and a "download as PDF" browser print instruction)
+    - POST /onboarding — update onboarding checklist items, mark doc uploads verified.
+    - POST /resignation — record resignation and handle resignation checklist.
+    - GET endpoints for each CSV for admin download.
+
+- Frontend:
+  - Minimal Jinja2 templates for:
+    - Dashboard / Requisitions list with Create Requisition form and "Close Job" button.
+    - Requisition details with candidate upload (single + bulk), candidate list and per-candidate action buttons for Screening, Interview, Offer.
+    - Screening form modal or page with multiple scoring criteria and comments (store separate scores).
+    - Interview form page with multiple scores and radio select Shortlisted/Hold/Rejected.
+    - Offer creation page with Date of Joining, other details, and "Generate Offer Letter" (HTML template plus PDF export link).
+    - Onboarding page for employees with checklist and file uploads.
+    - Resignation page with resignation checklist.
+  - Use client-side Javascript minimally for file upload and form submission.
+
+- Files:
+  - `app.py` — full Flask code
+  - `templates/*.html` — Jinja templates
+  - `static/*` — CSS/JS
+  - `csv_templates/` — sample CSV files with headers and a sample row for each table
+  - `uploads/` — for resumes and onboarding docs
+
+- Documentation:
+  - README with instructions to run on Replit:
+    - `pip install -r requirements.txt` (Flask, python-dotenv, pandas, weasyprint/pdfkit optional)
+    - `python app.py` or `flask run`
+  - Example CSV column definitions and sample rows included.
+
+- Behavior & validation:
+  - Validate required fields.
+  - Enforce workflow transitions and reflect status in candidates.csv via a `stage` column (values: Applied, Screening, Interview, Offer, Onboarded, Resigned, Closed).
+  - Add links from each stage to navigate to next stage actions.
+
+Return a zip-ready project structure and the full source code for `app.py`, templates and sample CSV files.
