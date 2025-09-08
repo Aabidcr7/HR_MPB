@@ -1,2 +1,2 @@
 id,requisition_id,name,email,phone,experience,skills,resume_filename,stage,applied_date,current_salary,expected_salary,notice_period
-1,1,"Jane Doe","jane.doe@email.com","+1-555-123-4567",6,"Python, Django, React, AWS, PostgreSQL","jane_doe_resume.pdf","Applied","2024-01-20 14:25:00","$95000","$110000","30 days"
+1,1,Jane Doe,jane.doe@email.com,+1-555-123-4567,6,"Python, Django, React, AWS, PostgreSQL",jane_doe_resume.pdf,Onboarded,2024-01-20 14:25:00,$95000,$110000,30 days
