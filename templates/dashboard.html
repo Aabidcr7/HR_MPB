@@ -1,111 +1,189 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - HR Management System{% endblock %}
+{% block title %}HR Management System{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Job Requisitions</h5>
-                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createRequisitionModal">
-                    <i class="fas fa-plus me-1"></i>Create Requisition
-                </button>
-            </div>
-            <div class="card-body">
-                {% if requisitions %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Position Title</th>
-                                    <th>Manager</th>
-                                    <th>Department</th>
-                                    <th>Openings</th>
-                                    <th>Start Date</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for req in requisitions %}
-                                <tr>
-                                    <td>{{ req.id }}</td>
-                                    <td>
-                                        <a href="{{ url_for('requisition_detail', req_id=req.id) }}" class="text-decoration-none">
-                                            {{ req.position_title }}
-                                        </a>
-                                    </td>
-                                    <td>{{ req.manager_name }}</td>
-                                    <td>{{ req.department }}</td>
-                                    <td><span class="badge bg-info">{{ req.number_of_openings }}</span></td>
-                                    <td>{{ req.start_date }}</td>
-                                    <td>
-                                        <span class="badge bg-{{ 'success' if req.status == 'Open' else 'secondary' }}">
-                                            {{ req.status }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="{{ url_for('requisition_detail', req_id=req.id) }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        {% if req.status == 'Open' %}
-                                        <form method="POST" action="{{ url_for('close_requisition', req_id=req.id) }}" class="d-inline">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                                    onclick="return confirm('Are you sure you want to close this requisition?')">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </form>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No requisitions found</h5>
-                        <p class="text-muted">Create your first job requisition to get started.</p>
-                    </div>
-                {% endif %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 bg-primary text-white">
+                <div class="card-body text-center py-5">
+                    <h1 class="display-4 mb-3">
+                        <i class="fas fa-users me-3"></i>HR Management System
+                    </h1>
+                    <p class="lead mb-0">Manage recruitment processes, employee lifecycle, and HR operations efficiently</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Quick Stats</h5>
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-6 mb-3">
-                        <div class="border rounded p-3">
-                            <h4 class="text-primary">{{ requisitions|selectattr('status', 'equalto', 'Open')|list|length }}</h4>
-                            <small class="text-muted">Open Jobs</small>
-                        </div>
+    <!-- HR Modules Grid -->
+    <div class="row g-4">
+        <!-- Requisitions -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 module-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-briefcase fa-3x text-primary"></i>
                     </div>
-                    <div class="col-6 mb-3">
-                        <div class="border rounded p-3">
-                            <h4 class="text-success">{{ requisitions|length }}</h4>
-                            <small class="text-muted">Total Jobs</small>
-                        </div>
-                    </div>
+                    <h4 class="card-title">Requisitions</h4>
+                    <p class="card-text text-muted">Create and manage job requisitions with hiring requirements</p>
+                    <a href="{{ url_for('requisitions_page') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-right me-2"></i>Manage Requisitions
+                    </a>
                 </div>
             </div>
         </div>
 
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Quick Actions</h5>
+        <!-- Candidates -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 module-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-user-friends fa-3x text-info"></i>
+                    </div>
+                    <h4 class="card-title">Candidates</h4>
+                    <p class="card-text text-muted">View and manage candidate applications and profiles</p>
+                    <a href="{{ url_for('candidates_page') }}" class="btn btn-info">
+                        <i class="fas fa-arrow-right me-2"></i>View Candidates
+                    </a>
+                </div>
             </div>
-            <div class="card-body">
-                <button class="btn btn-outline-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#bulkUploadModal">
-                    <i class="fas fa-file-csv me-1"></i>Bulk Upload Candidates
-                </button>
+        </div>
+
+        <!-- Screening -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 module-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-search fa-3x text-warning"></i>
+                    </div>
+                    <h4 class="card-title">Screening</h4>
+                    <p class="card-text text-muted">Conduct initial screening and candidate evaluations</p>
+                    <a href="{{ url_for('screening_page') }}" class="btn btn-warning">
+                        <i class="fas fa-arrow-right me-2"></i>Screen Candidates
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interviews -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 module-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-comments fa-3x text-success"></i>
+                    </div>
+                    <h4 class="card-title">Interviews</h4>
+                    <p class="card-text text-muted">Schedule and conduct candidate interviews</p>
+                    <a href="{{ url_for('interviews_page') }}" class="btn btn-success">
+                        <i class="fas fa-arrow-right me-2"></i>Manage Interviews
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Offers -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 module-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-handshake fa-3x text-secondary"></i>
+                    </div>
+                    <h4 class="card-title">Offers</h4>
+                    <p class="card-text text-muted">Create and manage job offers and offer letters</p>
+                    <a href="{{ url_for('offers_page') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right me-2"></i>Manage Offers
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Onboarding -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 module-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-user-plus fa-3x text-dark"></i>
+                    </div>
+                    <h4 class="card-title">Onboarding</h4>
+                    <p class="card-text text-muted">Onboard new employees with checklists and procedures</p>
+                    <a href="{{ url_for('onboarding_page') }}" class="btn btn-dark">
+                        <i class="fas fa-arrow-right me-2"></i>Onboard Employees
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employees -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 module-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-users fa-3x text-primary"></i>
+                    </div>
+                    <h4 class="card-title">Employees</h4>
+                    <p class="card-text text-muted">Manage active employees and their information</p>
+                    <a href="{{ url_for('employees_page') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-right me-2"></i>View Employees
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resignations -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 module-card">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-sign-out-alt fa-3x text-danger"></i>
+                    </div>
+                    <h4 class="card-title">Resignations</h4>
+                    <p class="card-text text-muted">Process employee resignations and exit procedures</p>
+                    <a href="{{ url_for('resignations_page') }}" class="btn btn-danger">
+                        <i class="fas fa-arrow-right me-2"></i>Process Resignations
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Quick Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-primary">{{ requisitions|selectattr('status', 'equalto', 'Open')|list|length }}</h4>
+                                <small class="text-muted">Open Requisitions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-info">0</h4>
+                                <small class="text-muted">Active Candidates</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-success">0</h4>
+                                <small class="text-muted">Interviews Pending</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border rounded p-3">
+                                <h4 class="text-warning">0</h4>
+                                <small class="text-muted">Offers Extended</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

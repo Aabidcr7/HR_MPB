@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Candidates - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-user-friends me-2"></i>All Candidates</h5>
+                    <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#bulkUploadModal">
+                        <i class="fas fa-file-csv me-1"></i>Bulk Upload
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if candidates %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Experience</th>
+                                        <th>Current Stage</th>
+                                        <th>Applied Date</th>
+                                        <th>Requisition</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for candidate in candidates %}
+                                    <tr>
+                                        <td>{{ candidate.id }}</td>
+                                        <td>{{ candidate.name }}</td>
+                                        <td>{{ candidate.email }}</td>
+                                        <td>{{ candidate.phone }}</td>
+                                        <td>{{ candidate.experience }} years</td>
+                                        <td>
+                                            <span class="badge bg-{% if candidate.stage == 'Applied' %}secondary{% elif candidate.stage == 'Screening' %}warning{% elif candidate.stage == 'Interview' %}info{% elif candidate.stage == 'Offer' %}primary{% elif candidate.stage == 'Onboarded' %}success{% else %}danger{% endif %}">
+                                                {{ candidate.stage }}
+                                            </span>
+                                        </td>
+                                        <td>{{ candidate.applied_date.split()[0] if candidate.applied_date else 'N/A' }}</td>
+                                        <td>
+                                            <a href="{{ url_for('requisition_detail', req_id=candidate.requisition_id) }}" class="text-decoration-none">
+                                                REQ-{{ candidate.requisition_id }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            {% if candidate.resume_filename %}
+                                            <a href="{{ url_for('get_resume', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </a>
+                                            {% endif %}
+                                            
+                                            {% if candidate.stage == 'Applied' %}
+                                            <a href="{{ url_for('screening_form', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-warning">
+                                                <i class="fas fa-search"></i> Screen
+                                            </a>
+                                            {% elif candidate.stage == 'Screening' %}
+                                            <a href="{{ url_for('interview_form', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-info">
+                                                <i class="fas fa-comments"></i> Interview
+                                            </a>
+                                            {% elif candidate.stage == 'Interview' %}
+                                            <a href="{{ url_for('offer_form', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-primary">
+                                                <i class="fas fa-handshake"></i> Offer
+                                            </a>
+                                            {% elif candidate.stage == 'Offer' %}
+                                            <a href="{{ url_for('onboarding', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-success">
+                                                <i class="fas fa-user-plus"></i> Onboard
+                                            </a>
+                                            {% elif candidate.stage == 'Onboarded' %}
+                                            <a href="{{ url_for('resignation_form', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-danger">
+                                                <i class="fas fa-sign-out-alt"></i> Resignation
+                                            </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-user-friends fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No candidates found</h4>
+                            <p class="text-muted">Candidates will appear here when they apply for job requisitions.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Upload Modal -->
+<div class="modal fade" id="bulkUploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Upload Candidates</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('bulk_upload_candidates') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">CSV File <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" name="csv_file" accept=".csv" required>
+                        <div class="form-text">
+                            Upload a CSV file with columns: requisition_id, name, email, phone, experience, skills, current_salary, expected_salary, notice_period
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

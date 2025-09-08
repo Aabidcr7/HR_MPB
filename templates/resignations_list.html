@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Resignations - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-sign-out-alt me-2"></i>Employee Resignations</h5>
+                </div>
+                <div class="card-body">
+                    {% if resigned_candidates %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Employee ID</th>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Resignation Date</th>
+                                        <th>Last Working Date</th>
+                                        <th>Reason</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for candidate in resigned_candidates %}
+                                    {% if candidate.stage == 'Resigned' %}
+                                    <tr>
+                                        <td>EMP{{ candidate.id }}</td>
+                                        <td>{{ candidate.name }}</td>
+                                        <td>{{ candidate.get('department', 'N/A') }}</td>
+                                        <td>{{ candidate.get('resignation_date', 'N/A') }}</td>
+                                        <td>{{ candidate.get('last_working_date', 'N/A') }}</td>
+                                        <td>{{ candidate.get('resignation_reason', 'N/A') }}</td>
+                                        <td>
+                                            <span class="badge bg-danger">Resigned</span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('resignation_form', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View Details
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-sign-out-alt fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No resignations on record</h4>
+                            <p class="text-muted">Employee resignations will be tracked and displayed here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Employees -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Active Employees (Available for Resignation)</h5>
+                </div>
+                <div class="card-body">
+                    {% if active_employees %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Employee ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Department</th>
+                                        <th>Join Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for employee in active_employees %}
+                                    {% if employee.stage == 'Onboarded' %}
+                                    <tr>
+                                        <td>EMP{{ employee.id }}</td>
+                                        <td>{{ employee.name }}</td>
+                                        <td>{{ employee.email }}</td>
+                                        <td>{{ employee.get('department', 'N/A') }}</td>
+                                        <td>{{ employee.applied_date.split()[0] if employee.applied_date else 'N/A' }}</td>
+                                        <td>
+                                            <span class="badge bg-success">Active</span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('resignation_form', cand_id=employee.id) }}" 
+                                               class="btn btn-sm btn-danger">
+                                                <i class="fas fa-sign-out-alt"></i> Process Resignation
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <p class="text-muted">No active employees available.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

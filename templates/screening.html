@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Screening - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-search me-2"></i>Candidate Screening</h5>
+                </div>
+                <div class="card-body">
+                    {% if candidates %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Candidate ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Experience</th>
+                                        <th>Applied For</th>
+                                        <th>Applied Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for candidate in candidates %}
+                                    {% if candidate.stage == 'Applied' %}
+                                    <tr>
+                                        <td>{{ candidate.id }}</td>
+                                        <td>{{ candidate.name }}</td>
+                                        <td>{{ candidate.email }}</td>
+                                        <td>{{ candidate.experience }} years</td>
+                                        <td>REQ-{{ candidate.requisition_id }}</td>
+                                        <td>{{ candidate.applied_date.split()[0] if candidate.applied_date else 'N/A' }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">Pending Screening</span>
+                                        </td>
+                                        <td>
+                                            {% if candidate.resume_filename %}
+                                            <a href="{{ url_for('get_resume', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </a>
+                                            {% endif %}
+                                            <a href="{{ url_for('screening_form', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-warning">
+                                                <i class="fas fa-search"></i> Start Screening
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No candidates for screening</h4>
+                            <p class="text-muted">Candidates who have applied for jobs will appear here for screening.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
