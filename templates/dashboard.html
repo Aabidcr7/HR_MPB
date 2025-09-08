@@ -19,11 +19,12 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Job Title</th>
+                                    <th>Position Title</th>
+                                    <th>Manager</th>
                                     <th>Department</th>
-                                    <th>Location</th>
+                                    <th>Openings</th>
+                                    <th>Start Date</th>
                                     <th>Status</th>
-                                    <th>Created Date</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -33,17 +34,18 @@
                                     <td>{{ req.id }}</td>
                                     <td>
                                         <a href="{{ url_for('requisition_detail', req_id=req.id) }}" class="text-decoration-none">
-                                            {{ req.job_title }}
+                                            {{ req.position_title }}
                                         </a>
                                     </td>
+                                    <td>{{ req.manager_name }}</td>
                                     <td>{{ req.department }}</td>
-                                    <td>{{ req.location }}</td>
+                                    <td><span class="badge bg-info">{{ req.number_of_openings }}</span></td>
+                                    <td>{{ req.start_date }}</td>
                                     <td>
                                         <span class="badge bg-{{ 'success' if req.status == 'Open' else 'secondary' }}">
                                             {{ req.status }}
                                         </span>
                                     </td>
-                                    <td>{{ req.created_date }}</td>
                                     <td>
                                         <a href="{{ url_for('requisition_detail', req_id=req.id) }}" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-eye"></i>
@@ -121,31 +123,48 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Job Title <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="job_title" required>
+                            <label class="form-label">Start Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="start_date" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Department <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="department" required>
+                            <label class="form-label">End Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="end_date" required>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
+                            <label class="form-label">Manager Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="manager_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Position Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="position_title" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Number of Openings <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="number_of_openings" min="1" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Department <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="department" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
                             <label class="form-label">Location <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="location" required>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Hiring Manager <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="hiring_manager" required>
-                        </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Job Description <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="description" rows="3" required></textarea>
+                        <label class="form-label">Job Details/Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="job_description" rows="5" required 
+                                  placeholder="Provide detailed job description, responsibilities, and key duties..."></textarea>
+                        <div class="form-text">You can format this text with line breaks and bullet points</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Requirements <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="requirements" rows="3" required></textarea>
+                        <label class="form-label">Requirements & Qualifications <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="requirements" rows="4" required 
+                                  placeholder="List required qualifications, skills, experience, education..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">

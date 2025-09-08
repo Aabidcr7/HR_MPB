@@ -89,14 +89,17 @@ def requisitions():
         # Create new requisition
         requisition_data = {
             'id': get_next_id(os.path.join(CSV_FOLDER, 'requisitions.csv')),
-            'job_title': request.form['job_title'],
+            'start_date': request.form['start_date'],
+            'end_date': request.form['end_date'],
+            'manager_name': request.form['manager_name'],
+            'position_title': request.form['position_title'],
+            'job_description': request.form['job_description'],
+            'number_of_openings': request.form['number_of_openings'],
             'department': request.form['department'],
             'location': request.form['location'],
-            'description': request.form['description'],
             'requirements': request.form['requirements'],
             'status': 'Open',
-            'created_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'hiring_manager': request.form['hiring_manager']
+            'created_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         
         if append_to_csv(requisition_data, os.path.join(CSV_FOLDER, 'requisitions.csv')):
