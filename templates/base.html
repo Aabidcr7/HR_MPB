@@ -21,8 +21,40 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('dashboard') }}">
-                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                            <i class="fas fa-home me-1"></i>Home
                         </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-briefcase me-1"></i>HR Modules
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('requisitions_page') }}">
+                                <i class="fas fa-briefcase me-2"></i>Requisitions
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('candidates_page') }}">
+                                <i class="fas fa-user-friends me-2"></i>Candidates
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('screening_page') }}">
+                                <i class="fas fa-search me-2"></i>Screening
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('interviews_page') }}">
+                                <i class="fas fa-comments me-2"></i>Interviews
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('offers_page') }}">
+                                <i class="fas fa-handshake me-2"></i>Offers
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('onboarding_page') }}">
+                                <i class="fas fa-user-plus me-2"></i>Onboarding
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('employees_page') }}">
+                                <i class="fas fa-users me-2"></i>Employees
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('resignations_page') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Resignations
+                            </a></li>
+                        </ul>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
