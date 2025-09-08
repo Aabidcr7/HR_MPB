@@ -1,0 +1,2 @@
+id,candidate_id,job_title,salary,joining_date,department,location,benefits,offer_letter_generated,offer_date,status
+1,1,"Senior Software Engineer",108000,"2024-02-15","Engineering","San Francisco, CA","Health insurance, dental coverage, 401k matching, flexible PTO, remote work options, professional development budget","Yes","2024-01-28 10:00:00","Sent"

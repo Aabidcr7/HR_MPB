@@ -1,0 +1,2 @@
+id,candidate_id,interviewer_name,interview_type,technical_score,problem_solving_score,communication_score,cultural_fit_score,overall_score,comments,status,interview_date
+1,1,"Mike Wilson","Technical",8,9,8,9,8.5,"Candidate performed well in the technical interview. Demonstrated strong problem-solving skills and good understanding of system design. Cultural fit is excellent. Recommend for offer.","Shortlisted","2024-01-25 15:30:00"

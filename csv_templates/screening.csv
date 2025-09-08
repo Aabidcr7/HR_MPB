@@ -1,0 +1,2 @@
+id,candidate_id,screener_name,technical_score,communication_score,experience_score,overall_score,comments,status,screening_date
+1,1,"Sarah Johnson",8,9,8,8.3,"Candidate demonstrates strong technical skills in Python and Django. Excellent communication skills and relevant experience. Good fit for the role. Recommend moving to interview stage.","Shortlisted","2024-01-22 11:15:00"

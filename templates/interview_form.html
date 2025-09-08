@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Interview - {{ candidate.name }} - HR Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-comments me-2"></i>Interview Assessment - {{ candidate.name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Email:</strong> {{ candidate.email }}</p>
+                        <p><strong>Phone:</strong> {{ candidate.phone }}</p>
+                        <p><strong>Skills:</strong> {{ candidate.skills }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Experience:</strong> {{ candidate.experience }} years</p>
+                        <p><strong>Current Stage:</strong> <span class="badge bg-primary">{{ candidate.stage }}</span></p>
+                        <p><strong>Applied Date:</strong> {{ candidate.applied_date }}</p>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('submit_interview') }}">
+                    <input type="hidden" name="candidate_id" value="{{ candidate.id }}">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Interviewer Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="interviewer_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Interview Type <span class="text-danger">*</span></label>
+                            <select class="form-control" name="interview_type" required>
+                                <option value="">Select Type</option>
+                                <option value="Technical">Technical</option>
+                                <option value="HR">HR</option>
+                                <option value="Managerial">Managerial</option>
+                                <option value="Panel">Panel</option>
+                                <option value="Final">Final</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h6 class="mt-4 mb-3">Interview Scores (1-10 scale)</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Technical Skills <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="technical_score" min="1" max="10" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Problem Solving <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="problem_solving_score" min="1" max="10" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Communication <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="communication_score" min="1" max="10" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Cultural Fit <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="cultural_fit_score" min="1" max="10" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Overall Score (1-10) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="overall_score" min="1" max="10" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Interview Notes & Comments <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="comments" rows="5" required 
+                                  placeholder="Please provide detailed feedback about the candidate's performance, strengths, areas for improvement, and overall assessment."></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Interview Result <span class="text-danger">*</span></label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="status" value="Shortlisted" id="shortlisted" required>
+                            <label class="form-check-label text-success" for="shortlisted">
+                                <i class="fas fa-check me-1"></i>Shortlisted (Move to Offer)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="status" value="Hold" id="hold" required>
+                            <label class="form-check-label text-warning" for="hold">
+                                <i class="fas fa-pause me-1"></i>Hold for Further Discussion
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="status" value="Rejected" id="rejected" required>
+                            <label class="form-check-label text-danger" for="rejected">
+                                <i class="fas fa-times me-1"></i>Rejected
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Submit Interview Result
+                        </button>
+                        <a href="{{ url_for('requisition_detail', req_id=candidate.requisition_id) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Requisition
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Resignation - {{ candidate.name }} - HR Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-sign-out-alt me-2"></i>Employee Resignation - {{ candidate.name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <p><strong>Employee ID:</strong> EMP{{ candidate.id }}</p>
+                        <p><strong>Email:</strong> {{ candidate.email }}</p>
+                        <p><strong>Phone:</strong> {{ candidate.phone }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Department:</strong> {{ candidate.get('department', 'N/A') }}</p>
+                        <p><strong>Current Stage:</strong> <span class="badge bg-primary">{{ candidate.stage }}</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Experience:</strong> {{ candidate.experience }} years</p>
+                        <p><strong>Skills:</strong> {{ candidate.skills }}</p>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('submit_resignation') }}">
+                    <input type="hidden" name="candidate_id" value="{{ candidate.id }}">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Resignation Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="resignation_date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Last Working Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="last_working_date" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Resignation <span class="text-danger">*</span></label>
+                        <select class="form-control" name="reason" required>
+                            <option value="">Select Reason</option>
+                            <option value="Better Opportunity">Better Opportunity</option>
+                            <option value="Career Growth">Career Growth</option>
+                            <option value="Higher Salary">Higher Salary</option>
+                            <option value="Work-Life Balance">Work-Life Balance</option>
+                            <option value="Relocation">Relocation</option>
+                            <option value="Personal Reasons">Personal Reasons</option>
+                            <option value="Health Issues">Health Issues</option>
+                            <option value="Education/Studies">Education/Studies</option>
+                            <option value="Retirement">Retirement</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="mb-3">
+                            <i class="fas fa-clipboard-check me-2"></i>Exit Clearance Checklist
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="exit_interview_completed" value="Yes" id="exit_interview">
+                                    <label class="form-check-label" for="exit_interview">
+                                        <i class="fas fa-comments me-2"></i>Exit Interview Completed
+                                        <small class="text-muted d-block">Feedback session conducted</small>
+                                    </label>
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="laptop_returned" value="Yes" id="laptop_returned">
+                                    <label class="form-check-label" for="laptop_returned">
+                                        <i class="fas fa-laptop me-2"></i>Laptop/Equipment Returned
+                                        <small class="text-muted d-block">All company hardware returned</small>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="id_card_returned" value="Yes" id="id_card_returned">
+                                    <label class="form-check-label" for="id_card_returned">
+                                        <i class="fas fa-id-card me-2"></i>ID Card Returned
+                                        <small class="text-muted d-block">Employee ID card returned</small>
+                                    </label>
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="clearance_completed" value="Yes" id="clearance_completed">
+                                    <label class="form-check-label" for="clearance_completed">
+                                        <i class="fas fa-check-circle me-2"></i>Department Clearance
+                                        <small class="text-muted d-block">All departmental clearances obtained</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Final Settlement Status</label>
+                        <select class="form-control" name="final_settlement">
+                            <option value="Pending">Pending</option>
+                            <option value="In Process">In Process</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">HR Representative <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="hr_representative" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Additional Comments</label>
+                        <textarea class="form-control" name="comments" rows="4" 
+                                  placeholder="Add any additional notes about the resignation process, exit interview feedback, or handover details..."></textarea>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Important:</strong> Submitting this form will update the employee's status to "Resigned" and complete their lifecycle in the system.
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger" 
+                                onclick="return confirm('Are you sure you want to process this resignation? This action cannot be undone.')">
+                            <i class="fas fa-sign-out-alt me-1"></i>Process Resignation
+                        </button>
+                        <a href="{{ url_for('requisition_detail', req_id=candidate.requisition_id) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Requisition
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

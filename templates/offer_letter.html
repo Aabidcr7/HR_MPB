@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offer Letter - {{ candidate.name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 40px;
+            background: white;
+        }
+        .letterhead {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c5aa0;
+        }
+        .offer-title {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin: 30px 0;
+            text-decoration: underline;
+        }
+        .content {
+            margin: 20px 0;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .details-table th, .details-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .details-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        .signature-section {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 200px;
+            text-align: center;
+        }
+        .signature-line {
+            border-top: 1px solid #333;
+            margin-top: 50px;
+            padding-top: 5px;
+        }
+        .print-note {
+            background-color: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        @media print {
+            .print-note { display: none; }
+            body { margin: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-note">
+        <strong>To save as PDF:</strong> Press Ctrl+P (Cmd+P on Mac), then select "Save as PDF" or "Print to PDF"
+    </div>
+
+    <div class="letterhead">
+        <div class="company-name">Your Company Name</div>
+        <div>123 Business Street, City, State 12345</div>
+        <div>Phone: (555) 123-4567 | Email: hr@company.com</div>
+    </div>
+
+    <div class="offer-title">EMPLOYMENT OFFER LETTER</div>
+
+    <div class="content">
+        <p><strong>Date:</strong> {{ offer.offer_date.split()[0] if offer.offer_date else 'N/A' }}</p>
+        
+        <p>Dear {{ candidate.name }},</p>
+
+        <p>We are pleased to offer you the position of <strong>{{ offer.job_title }}</strong> with our company. 
+        We believe that your skills and experience will be a valuable addition to our team.</p>
+
+        <p>The details of your employment offer are as follows:</p>
+
+        <table class="details-table">
+            <tr>
+                <th>Position</th>
+                <td>{{ offer.job_title }}</td>
+            </tr>
+            <tr>
+                <th>Department</th>
+                <td>{{ offer.department }}</td>
+            </tr>
+            <tr>
+                <th>Annual Salary</th>
+                <td>${{ "{:,.2f}".format(offer.salary|float) if offer.salary else 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Start Date</th>
+                <td>{{ offer.joining_date }}</td>
+            </tr>
+            <tr>
+                <th>Work Location</th>
+                <td>{{ offer.location }}</td>
+            </tr>
+            <tr>
+                <th>Employment Type</th>
+                <td>Full-time</td>
+            </tr>
+        </table>
+
+        {% if offer.benefits %}
+        <p><strong>Benefits and Perks:</strong></p>
+        <div style="margin-left: 20px;">
+            {{ offer.benefits|replace('\n', '<br>')|safe }}
+        </div>
+        {% endif %}
+
+        <p><strong>Terms and Conditions:</strong></p>
+        <ul>
+            <li>This offer is contingent upon successful completion of background verification and reference checks.</li>
+            <li>Your employment will be subject to the company's standard terms and conditions of employment.</li>
+            <li>This offer is valid for 7 days from the date of this letter.</li>
+            <li>Your employment will be at-will, meaning either party may terminate the employment relationship at any time.</li>
+        </ul>
+
+        <p>To accept this offer, please sign and return one copy of this letter by the specified deadline. 
+        We look forward to welcoming you to our team!</p>
+
+        <p>If you have any questions about this offer, please feel free to contact me.</p>
+
+        <p>Sincerely,</p>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="signature-line">HR Manager</div>
+            <div>Date: _____________</div>
+        </div>
+        
+        <div class="signature-box">
+            <div class="signature-line">{{ candidate.name }}</div>
+            <div>Date: _____________</div>
+            <div style="margin-top: 10px; font-size: 12px;">
+                (Signature indicates acceptance of offer)
+            </div>
+        </div>
+    </div>
+</body>
+</html>

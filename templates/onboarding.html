@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Onboarding - {{ candidate.name }} - HR Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-plus me-2"></i>Employee Onboarding - {{ candidate.name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <p><strong>Email:</strong> {{ candidate.email }}</p>
+                        <p><strong>Phone:</strong> {{ candidate.phone }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Department:</strong> {{ candidate.get('department', 'N/A') }}</p>
+                        <p><strong>Current Stage:</strong> <span class="badge bg-primary">{{ candidate.stage }}</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Employee ID:</strong> EMP{{ candidate.id }}</p>
+                        <p><strong>Start Date:</strong> {{ onboarding.get('onboarding_date', 'Not set') }}</p>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('update_onboarding') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="candidate_id" value="{{ candidate.id }}">
+                    
+                    <div class="mb-4">
+                        <h6 class="mb-3">
+                            <i class="fas fa-tasks me-2"></i>Onboarding Checklist
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="documents_verified" value="Yes" 
+                                           id="documents_verified" 
+                                           {{ 'checked' if onboarding.get('documents_verified') == 'Yes' else '' }}>
+                                    <label class="form-check-label" for="documents_verified">
+                                        <i class="fas fa-file-alt me-2"></i>Documents Verified
+                                        <small class="text-muted d-block">ID proof, education certificates, experience letters</small>
+                                    </label>
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="laptop_assigned" value="Yes" 
+                                           id="laptop_assigned" 
+                                           {{ 'checked' if onboarding.get('laptop_assigned') == 'Yes' else '' }}>
+                                    <label class="form-check-label" for="laptop_assigned">
+                                        <i class="fas fa-laptop me-2"></i>Laptop Assigned
+                                        <small class="text-muted d-block">Hardware setup and configuration completed</small>
+                                    </label>
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="id_card_issued" value="Yes" 
+                                           id="id_card_issued" 
+                                           {{ 'checked' if onboarding.get('id_card_issued') == 'Yes' else '' }}>
+                                    <label class="form-check-label" for="id_card_issued">
+                                        <i class="fas fa-id-card me-2"></i>ID Card Issued
+                                        <small class="text-muted d-block">Employee identification card provided</small>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="workspace_assigned" value="Yes" 
+                                           id="workspace_assigned" 
+                                           {{ 'checked' if onboarding.get('workspace_assigned') == 'Yes' else '' }}>
+                                    <label class="form-check-label" for="workspace_assigned">
+                                        <i class="fas fa-chair me-2"></i>Workspace Assigned
+                                        <small class="text-muted d-block">Desk, chair, and workspace allocated</small>
+                                    </label>
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="orientation_completed" value="Yes" 
+                                           id="orientation_completed" 
+                                           {{ 'checked' if onboarding.get('orientation_completed') == 'Yes' else '' }}>
+                                    <label class="form-check-label" for="orientation_completed">
+                                        <i class="fas fa-graduation-cap me-2"></i>Orientation Completed
+                                        <small class="text-muted d-block">Company introduction and policies explained</small>
+                                    </label>
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="system_access_provided" value="Yes" 
+                                           id="system_access_provided" 
+                                           {{ 'checked' if onboarding.get('system_access_provided') == 'Yes' else '' }}>
+                                    <label class="form-check-label" for="system_access_provided">
+                                        <i class="fas fa-key me-2"></i>System Access Provided
+                                        <small class="text-muted d-block">Email, software, and system accounts created</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">HR Representative <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="hr_representative" 
+                               value="{{ onboarding.get('hr_representative', '') }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Onboarding Notes & Comments</label>
+                        <textarea class="form-control" name="comments" rows="4" 
+                                  placeholder="Add any additional notes, feedback, or special instructions...">{{ onboarding.get('comments', '') }}</textarea>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Once all checklist items are completed, the employee's status will be updated to "Onboarded".
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Update Onboarding Status
+                        </button>
+                        <a href="{{ url_for('requisition_detail', req_id=candidate.requisition_id) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Requisition
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if onboarding %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-history me-2"></i>Onboarding History</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Last Updated:</strong> {{ onboarding.get('onboarding_date', 'N/A') }}</p>
+                        <p><strong>HR Representative:</strong> {{ onboarding.get('hr_representative', 'N/A') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Completion Status:</strong></p>
+                        {% set total_items = 6 %}
+                        {% set completed_items = [
+                            onboarding.get('documents_verified'),
+                            onboarding.get('laptop_assigned'),
+                            onboarding.get('id_card_issued'),
+                            onboarding.get('workspace_assigned'),
+                            onboarding.get('orientation_completed'),
+                            onboarding.get('system_access_provided')
+                        ]|select('equalto', 'Yes')|list|length %}
+                        
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ (completed_items / total_items * 100)|round }}%"
+                                 aria-valuenow="{{ completed_items }}" aria-valuemin="0" aria-valuemax="{{ total_items }}">
+                                {{ completed_items }}/{{ total_items }} Complete
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if onboarding.get('comments') %}
+                <div class="mt-3">
+                    <strong>Previous Comments:</strong>
+                    <p class="text-muted">{{ onboarding.get('comments') }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}{{ requisition.job_title }} - HR Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-briefcase me-2"></i>{{ requisition.job_title }}
+                    <span class="badge bg-{{ 'success' if requisition.status == 'Open' else 'secondary' }} ms-2">
+                        {{ requisition.status }}
+                    </span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Department:</strong> {{ requisition.department }}</p>
+                        <p><strong>Location:</strong> {{ requisition.location }}</p>
+                        <p><strong>Hiring Manager:</strong> {{ requisition.hiring_manager }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Created Date:</strong> {{ requisition.created_date }}</p>
+                        <p><strong>Requisition ID:</strong> {{ requisition.id }}</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <h6>Job Description:</h6>
+                    <p class="text-muted">{{ requisition.description }}</p>
+                </div>
+                <div class="mt-3">
+                    <h6>Requirements:</h6>
+                    <p class="text-muted">{{ requisition.requirements }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i>Candidates ({{ candidates|length }})</h5>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                    <i class="fas fa-plus me-1"></i>Add Candidate
+                </button>
+            </div>
+            <div class="card-body">
+                {% if candidates %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Experience</th>
+                                    <th>Stage</th>
+                                    <th>Applied Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for candidate in candidates %}
+                                <tr>
+                                    <td>{{ candidate.name }}</td>
+                                    <td>{{ candidate.email }}</td>
+                                    <td>{{ candidate.experience }} years</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ candidate.stage }}</span>
+                                    </td>
+                                    <td>{{ candidate.applied_date }}</td>
+                                    <td>
+                                        {% if candidate.resume_filename %}
+                                        <a href="{{ url_for('get_resume', cand_id=candidate.id) }}" 
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                        {% endif %}
+                                        
+                                        {% if candidate.stage == 'Applied' %}
+                                        <a href="{{ url_for('screening_form', cand_id=candidate.id) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-search"></i> Screen
+                                        </a>
+                                        {% elif candidate.stage == 'Screening' %}
+                                        <a href="{{ url_for('interview_form', cand_id=candidate.id) }}" 
+                                           class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-comments"></i> Interview
+                                        </a>
+                                        {% elif candidate.stage == 'Interview' %}
+                                        <a href="{{ url_for('offer_form', cand_id=candidate.id) }}" 
+                                           class="btn btn-sm btn-outline-warning">
+                                            <i class="fas fa-handshake"></i> Offer
+                                        </a>
+                                        {% elif candidate.stage == 'Offer' %}
+                                        <a href="{{ url_for('onboarding', cand_id=candidate.id) }}" 
+                                           class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-user-plus"></i> Onboard
+                                        </a>
+                                        <a href="{{ url_for('generate_offer_letter', cand_id=candidate.id) }}" 
+                                           class="btn btn-sm btn-outline-secondary" target="_blank">
+                                            <i class="fas fa-file-contract"></i> Offer Letter
+                                        </a>
+                                        {% elif candidate.stage == 'Onboarded' %}
+                                        <a href="{{ url_for('resignation_form', cand_id=candidate.id) }}" 
+                                           class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-sign-out-alt"></i> Resignation
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No candidates found</h5>
+                        <p class="text-muted">Add candidates to start the recruitment process.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Candidate Pipeline</h5>
+            </div>
+            <div class="card-body">
+                {% set stages = ['Applied', 'Screening', 'Interview', 'Offer', 'Onboarded', 'Resigned'] %}
+                {% for stage in stages %}
+                    {% set count = candidates|selectattr('stage', 'equalto', stage)|list|length %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>{{ stage }}</span>
+                        <span class="badge bg-secondary">{{ count }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Candidate Modal -->
+<div class="modal fade" id="addCandidateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Candidate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_candidate', req_id=requisition.id) }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Phone <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" name="phone" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Experience (years) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="experience" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Current Salary</label>
+                            <input type="text" class="form-control" name="current_salary">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Expected Salary</label>
+                            <input type="text" class="form-control" name="expected_salary">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Skills <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="skills" rows="2" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notice Period</label>
+                        <input type="text" class="form-control" name="notice_period" placeholder="e.g., 30 days">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Resume</label>
+                        <input type="file" class="form-control" name="resume" accept=".pdf,.doc,.docx">
+                        <div class="form-text">Upload PDF, DOC, or DOCX files only</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Candidate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
