@@ -1,24 +1,30 @@
 /* Custom styles for HR Management System */
 body {
-    background-color: #f8f9fa;
+    background-color: #f1f3f5; /* light grey background */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #212529; /* default text black-ish */
+}
+
+.navbar.navbar-light {
+    background-color: #ffffff !important;
 }
 
 .navbar-brand {
     font-weight: 600;
-    color: #495057;
+    color: #212529;
 }
 
 .card {
-    border: 1px solid #dee2e6;
+    border: 1px solid #e9ecef;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     margin-bottom: 1rem;
-    background-color: white;
+    background-color: #ffffff;
+    color: #212529;
 }
 
 .card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e9ecef;
 }
 
 .table-hover tbody tr:hover {
@@ -161,6 +167,16 @@ body {
     background-color: #f8f9fa;
 }
 
+.btn-outline-dark {
+    border-color: #212529;
+    color: #212529;
+}
+
+.btn-outline-dark:hover {
+    background-color: #212529;
+    color: #ffffff;
+}
+
 /* Focus states */
 .form-control:focus,
 .form-select:focus {
@@ -182,4 +198,50 @@ body {
 
 .dropdown-item:hover {
     background-color: #f8f9fa;
+}
+
+/* Module card look & feel */
+.module-card {
+    border: 0 !important;
+    border-radius: 1.25rem; /* rounded corners */
+    background: #ffffff;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.module-card .card-body {
+    position: relative;
+}
+
+/* Icon badge like screenshot */
+.icon-badge {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    margin-bottom: 0.75rem;
+}
+
+.icon-badge i {
+    color: #111111;
+}
+
+/* Typography similar to sample */
+.module-card .card-title {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: #111111;
+}
+
+.module-card .card-text {
+    color: #6c757d;
+}
+
+/* Hover elevate */
+.module-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12) !important;
 }

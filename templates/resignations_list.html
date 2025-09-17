@@ -37,10 +37,13 @@
                                         <td>{{ candidate.get('last_working_date', 'N/A') }}</td>
                                         <td>{{ candidate.get('resignation_reason', 'N/A') }}</td>
                                         <td>
-                                            <span class="badge bg-danger">Resigned</span>
+                                            <span class="badge bg-danger me-2">Resigned</span>
+                                            <a href="{{ url_for('resignation_form', cand_id=candidate.id) }}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
                                         </td>
                                         <td>
-                                            <a href="{{ url_for('resignation_form', cand_id=candidate.id) }}" 
+                                            <a href="{{ url_for('resignation_detail', cand_id=candidate.id) }}" 
                                                class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-eye"></i> View Details
                                             </a>

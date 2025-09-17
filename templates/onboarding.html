@@ -19,11 +19,11 @@
                     </div>
                     <div class="col-md-4">
                         <p><strong>Department:</strong> {{ candidate.get('department', 'N/A') }}</p>
-                        <p><strong>Current Stage:</strong> <span class="badge bg-primary">{{ candidate.stage }}</span></p>
+                        <p><strong>Position:</strong> {{ candidate.get('job_title', candidate.get('position','N/A')) }}</p>
                     </div>
                     <div class="col-md-4">
                         <p><strong>Employee ID:</strong> EMP{{ candidate.id }}</p>
-                        <p><strong>Start Date:</strong> {{ onboarding.get('onboarding_date', 'Not set') }}</p>
+                        <p><strong>Start Date:</strong> {{ candidate.get('joining_date', 'Not set') }}</p>
                     </div>
                 </div>
 

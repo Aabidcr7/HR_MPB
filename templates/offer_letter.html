@@ -109,7 +109,7 @@
             </tr>
             <tr>
                 <th>Annual Salary</th>
-                <td>${{ "{:,.2f}".format(offer.salary|float) if offer.salary else 'N/A' }}</td>
+                <td>₹{{ "{:,.2f}".format(offer.salary|float) if offer.salary else 'N/A' }}</td>
             </tr>
             <tr>
                 <th>Start Date</th>

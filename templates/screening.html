@@ -28,7 +28,7 @@
                                 </thead>
                                 <tbody>
                                     {% for candidate in candidates %}
-                                    {% if candidate.stage == 'Applied' %}
+                                    {% if candidate.stage == 'Applied' or candidate.stage == 'Screening Hold' %}
                                     <tr>
                                         <td>{{ candidate.id }}</td>
                                         <td>{{ candidate.name }}</td>
@@ -37,19 +37,36 @@
                                         <td>REQ-{{ candidate.requisition_id }}</td>
                                         <td>{{ candidate.applied_date.split()[0] if candidate.applied_date else 'N/A' }}</td>
                                         <td>
+                                            {% if candidate.stage == 'Applied' %}
                                             <span class="badge bg-secondary">Pending Screening</span>
+                                            {% elif candidate.stage == 'Screening Hold' %}
+                                            <span class="badge bg-warning text-dark">Screening Hold</span>
+                                            {% endif %}
                                         </td>
                                         <td>
+                                            <a href="{{ url_for('candidate_detail', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            
                                             {% if candidate.resume_filename %}
                                             <a href="{{ url_for('get_resume', cand_id=candidate.id) }}" 
                                                class="btn btn-sm btn-outline-secondary">
                                                 <i class="fas fa-file-pdf"></i>
                                             </a>
                                             {% endif %}
-                                            <a href="{{ url_for('screening_form', cand_id=candidate.id) }}" 
-                                               class="btn btn-sm btn-warning">
-                                                <i class="fas fa-search"></i> Start Screening
-                                            </a>
+                                            
+                                            {% if candidate.stage == 'Applied' %}
+                                                <a href="{{ url_for('screening_form', cand_id=candidate.id) }}" 
+                                                   class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-search"></i> Start Screening
+                                                </a>
+                                            {% elif candidate.stage == 'Hold' %}
+                                                <a href="{{ url_for('screening_form', cand_id=candidate.id) }}" 
+                                                   class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-redo"></i> Screen Again
+                                                </a>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                     {% endif %}

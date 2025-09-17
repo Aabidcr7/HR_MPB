@@ -1,2 +1,10 @@
-id,candidate_id,resignation_date,last_working_date,reason,exit_interview_completed,laptop_returned,id_card_returned,clearance_completed,final_settlement,comments,hr_representative
-1,1,"2024-12-01","2024-12-15","Better Opportunity","Yes","Yes","Yes","Yes","Completed","Employee leaving for a senior role at another company. Exit interview conducted with positive feedback. All clearances completed smoothly.","Lisa Brown"
+id,candidate_id,resignation_date,last_working_date,reason,exit_interview_completed,laptop_returned,id_card_returned,clearance_completed,final_settlement,comments,hr_representative,updated_at,completion_status
+1,1,2024-12-01,2024-12-15,Better Opportunity,Yes,Yes,Yes,Yes,Completed,Employee leaving for a senior role at another company. Exit interview conducted with positive feedback. All clearances completed smoothly.,Lisa Brown,,
+2,1,2025-09-11,2025-09-30,Higher Salary,Yes,Yes,No,No,Completed,,Lisa Brown,,
+3,2,2025-09-11,2025-09-12,Personal Reasons,Yes,Yes,No,Yes,Completed,,dinesh,,
+4,6,2025-09-18,2025-09-19,Relocation,Yes,Yes,Yes,Yes,In Process,,dinesh,2025-09-09 12:42:01,In Progress
+5,2,2025-09-11,2025-09-12,Personal Reasons,Yes,Yes,Yes,Yes,Completed,,dinesh,2025-09-09 12:51:04,Completed
+6,2,2025-09-11,2025-09-12,Personal Reasons,Yes,Yes,Yes,No,Completed,,dinesh,2025-09-09 13:06:41,In Progress
+7,12,2025-09-18,2025-09-26,Personal Reasons,Yes,Yes,No,Yes,Completed,,dinesh,2025-09-09 17:14:29,In Progress
+8,7,2025-09-10,2025-09-11,Personal Reasons,Yes,Yes,Yes,Yes,Completed,,dinesh,2025-09-10 15:18:18,Completed
+9,7,2025-09-10,2025-09-11,Personal Reasons,Yes,Yes,Yes,Yes,Completed,nan,dinesh,2025-09-10 15:25:28,Completed

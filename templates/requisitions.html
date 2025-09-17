@@ -6,73 +6,78 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card border-0 bg-white text-dark shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center bg-white border-0">
                     <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Job Requisitions</h5>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createRequisitionModal">
+                    <button class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#createRequisitionModal">
                         <i class="fas fa-plus me-1"></i>Create New Requisition
                     </button>
                 </div>
                 <div class="card-body">
                     {% if requisitions %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Position Title</th>
-                                        <th>Manager</th>
-                                        <th>Department</th>
-                                        <th>Openings</th>
-                                        <th>Start Date</th>
-                                        <th>End Date</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for req in requisitions %}
-                                    <tr>
-                                        <td>{{ req.id }}</td>
-                                        <td>
-                                            <a href="{{ url_for('requisition_detail', req_id=req.id) }}" class="text-decoration-none">
-                                                {{ req.position_title }}
-                                            </a>
-                                        </td>
-                                        <td>{{ req.manager_name }}</td>
-                                        <td>{{ req.department }}</td>
-                                        <td><span class="badge bg-info">{{ req.number_of_openings }}</span></td>
-                                        <td>{{ req.start_date }}</td>
-                                        <td>{{ req.end_date }}</td>
-                                        <td>
-                                            <span class="badge bg-{{ 'success' if req.status == 'Open' else 'secondary' }}">
-                                                {{ req.status }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <a href="{{ url_for('requisition_detail', req_id=req.id) }}" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i> View
+                        <div class="row g-4">
+                            {% for req in requisitions %}
+                            <div class="col-xl-4 col-lg-6">
+                                <div class="card module-card h-100">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="icon-badge"><i class="fas fa-briefcase fa-lg"></i></div>
+                                            <span class="badge {{ 'bg-success' if req.status == 'Open' else 'bg-secondary' }}">{{ req.status }}</span>
+                                        </div>
+
+                                        <h5 class="card-title mt-2">{{ req.position_title }}</h5>
+                                        <p class="text-muted mb-2">{{ req.department }} · <span class="text-lowercase">{{ req.job_type }}</span></p>
+
+                                        <div class="row small mb-2">
+                                            <div class="col-6">
+                                                <div class="text-muted">Location:</div>
+                                                <div class="fw-semibold">{{ req.location or 'Not specified' }}</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="text-muted">Headcount:</div>
+                                                <div class="fw-semibold">{{ req.number_of_openings or 'Not specified' }}</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row small mb-2">
+                                            <div class="col-6">
+                                                <div class="text-muted">Manager:</div>
+                                                <div class="fw-semibold">{{ req.manager_name or 'Not assigned' }}</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="text-muted">Created:</div>
+                                                <div class="fw-semibold">{{ req.get('created_date', req.start_date) }}</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="small mb-3">
+                                            <div class="text-muted">Salary Range:</div>
+                                            <div class="fw-semibold">₹{{ "{:,}".format(req.salary_min|int) }} - ₹{{ "{:,}".format(req.salary_max|int) }}</div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between gap-2">
+                                            <a href="{{ url_for('requisition_detail', req_id=req.id) }}" class="btn btn-outline-dark flex-fill">
+                                                <i class="fas fa-eye me-1"></i>View
                                             </a>
                                             {% if req.status == 'Open' %}
-                                            <form method="POST" action="{{ url_for('close_requisition', req_id=req.id) }}" class="d-inline">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                                        onclick="return confirm('Are you sure you want to close this requisition?')">
-                                                    <i class="fas fa-times"></i> Close
+                                            <form method="POST" action="{{ url_for('close_requisition', req_id=req.id) }}">
+                                                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to close this requisition?')">
+                                                    <i class="fas fa-times"></i>
                                                 </button>
                                             </form>
                                             {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
                         </div>
                     {% else %}
                         <div class="text-center py-5">
                             <i class="fas fa-briefcase fa-4x text-muted mb-3"></i>
                             <h4 class="text-muted">No requisitions found</h4>
                             <p class="text-muted">Create your first job requisition to get started with the hiring process.</p>
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createRequisitionModal">
+                            <button class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#createRequisitionModal">
                                 <i class="fas fa-plus me-1"></i>Create First Requisition
                             </button>
                         </div>
@@ -95,22 +100,22 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
+                            <label class="form-label">Position Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="position_title" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Manager Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="manager_name" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Start Date <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" name="start_date" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">End Date <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" name="end_date" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Manager Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="manager_name" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Position Title <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="position_title" required>
                         </div>
                     </div>
                     <div class="row">
@@ -125,6 +130,25 @@
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Location <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="location" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Salary Range Min <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="salary_min" min="0" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Salary Range Max <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="salary_max" min="0" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Job Type <span class="text-danger">*</span></label>
+                            <select class="form-control" name="job_type" required>
+                                <option value="">Select Job Type</option>
+                                <option value="Full time">Full time</option>
+                                <option value="Contract">Contract</option>
+                                <option value="Intern">Intern</option>
+                            </select>
                         </div>
                     </div>
                     <div class="mb-3">

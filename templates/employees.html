@@ -38,8 +38,8 @@
                                         <td>{{ employee.email }}</td>
                                         <td>{{ employee.phone }}</td>
                                         <td>{{ employee.get('department', 'N/A') }}</td>
-                                        <td>{{ employee.get('position', 'N/A') }}</td>
-                                        <td>{{ employee.get('join_date', employee.applied_date.split()[0] if employee.applied_date else 'N/A') }}</td>
+                                        <td>{{ employee.get('position', employee.get('job_title', 'N/A')) }}</td>
+                                        <td>{{ employee.get('joining_date', employee.applied_date.split()[0] if employee.applied_date else 'N/A') }}</td>
                                         <td>
                                             <span class="badge bg-success">Active</span>
                                         </td>

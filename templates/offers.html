@@ -40,12 +40,18 @@
                                             <span class="badge bg-primary">Ready for Offer</span>
                                         </td>
                                         <td>
+                                            <a href="{{ url_for('candidate_detail', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            
                                             {% if candidate.resume_filename %}
                                             <a href="{{ url_for('get_resume', cand_id=candidate.id) }}" 
                                                class="btn btn-sm btn-outline-secondary">
                                                 <i class="fas fa-file-pdf"></i>
                                             </a>
                                             {% endif %}
+                                            
                                             <a href="{{ url_for('offer_form', cand_id=candidate.id) }}" 
                                                class="btn btn-sm btn-secondary">
                                                 <i class="fas fa-handshake"></i> Create Offer
@@ -104,10 +110,16 @@
                                             <span class="badge bg-warning">Offer Sent</span>
                                         </td>
                                         <td>
+                                            <a href="{{ url_for('candidate_detail', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            
                                             <a href="{{ url_for('generate_offer_letter', cand_id=candidate.id) }}" 
-                                               class="btn btn-sm btn-outline-primary" target="_blank">
+                                               class="btn btn-sm btn-outline-secondary" target="_blank">
                                                 <i class="fas fa-file-contract"></i> View Letter
                                             </a>
+                                            
                                             <a href="{{ url_for('onboarding', cand_id=candidate.id) }}" 
                                                class="btn btn-sm btn-success">
                                                 <i class="fas fa-user-plus"></i> Onboard

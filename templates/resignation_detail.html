@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Resignation - {{ candidate.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-sign-out-alt me-2"></i>Resignation Details - {{ candidate.name }}</h5>
+          <a href="{{ url_for('resignations_page') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <p><strong>Employee ID:</strong> EMP{{ candidate.id }}</p>
+              <p><strong>Email:</strong> {{ candidate.email }}</p>
+              <p><strong>Phone:</strong> {{ candidate.phone }}</p>
+            </div>
+            <div class="col-md-4">
+              <p><strong>Department:</strong> {{ candidate.get('department','N/A') }}</p>
+              <p><strong>Position:</strong> {{ candidate.get('job_title','N/A') }}</p>
+            </div>
+            <div class="col-md-4">
+              <p><strong>Stage:</strong> <span class="badge bg-danger">Resigned</span></p>
+            </div>
+          </div>
+
+          {% if resignation %}
+          <div class="row">
+            <div class="col-md-6">
+              <p><strong>Resignation Date:</strong> {{ resignation.get('resignation_date','N/A') }}</p>
+              <p><strong>Last Working Date:</strong> {{ resignation.get('last_working_date','N/A') }}</p>
+              <p><strong>Reason:</strong> {{ resignation.get('reason','N/A') }}</p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Final Settlement:</strong> {{ resignation.get('final_settlement','N/A') }}</p>
+              <p><strong>Completion Status:</strong> {{ resignation.get('completion_status','In Progress') }}</p>
+              <p><strong>Last Updated:</strong> {{ resignation.get('updated_at','N/A') }}</p>
+              <p><strong>HR Representative:</strong> {{ resignation.get('hr_representative','N/A') }}</p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <p><strong>Exit Interview Completed:</strong> {{ resignation.get('exit_interview_completed','No') }}</p>
+              <p><strong>Laptop Returned:</strong> {{ resignation.get('laptop_returned','No') }}</p>
+              <p><strong>ID Card Returned:</strong> {{ resignation.get('id_card_returned','No') }}</p>
+              <p><strong>Department Clearance:</strong> {{ resignation.get('clearance_completed','No') }}</p>
+              {% if resignation.get('comments') %}
+              <div class="mt-2">
+                <h6>Comments</h6>
+                <p class="text-muted">{{ resignation.get('comments') }}</p>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if resignation_history and resignation_history|length > 1 %}
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="fas fa-history me-2"></i>Resignation History</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Resignation Date</th>
+                  <th>Last Working</th>
+                  <th>Reason</th>
+                  <th>Exit Interview</th>
+                  <th>Laptop</th>
+                  <th>ID Card</th>
+                  <th>Clearance</th>
+                  <th>Final Settlement</th>
+                  <th>HR Rep</th>
+                  <th>Completion</th>
+                  <th>Updated At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in resignation_history %}
+                <tr>
+                  <td>{{ r.get('resignation_date','') }}</td>
+                  <td>{{ r.get('last_working_date','') }}</td>
+                  <td>{{ r.get('reason','') }}</td>
+                  <td>{{ r.get('exit_interview_completed','No') }}</td>
+                  <td>{{ r.get('laptop_returned','No') }}</td>
+                  <td>{{ r.get('id_card_returned','No') }}</td>
+                  <td>{{ r.get('clearance_completed','No') }}</td>
+                  <td>{{ r.get('final_settlement','') }}</td>
+                  <td>{{ r.get('hr_representative','') }}</td>
+                  <td>{{ r.get('completion_status','') }}</td>
+                  <td>{{ r.get('updated_at','') }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

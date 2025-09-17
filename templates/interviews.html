@@ -28,7 +28,7 @@
                                 </thead>
                                 <tbody>
                                     {% for candidate in candidates %}
-                                    {% if candidate.stage == 'Screening' %}
+                                    {% if candidate.stage == 'Screening' or candidate.stage == 'Interview Hold' %}
                                     <tr>
                                         <td>{{ candidate.id }}</td>
                                         <td>{{ candidate.name }}</td>
@@ -37,19 +37,36 @@
                                         <td>REQ-{{ candidate.requisition_id }}</td>
                                         <td>{{ candidate.applied_date.split()[0] if candidate.applied_date else 'N/A' }}</td>
                                         <td>
+                                            {% if candidate.stage == 'Screening' %}
                                             <span class="badge bg-info">Ready for Interview</span>
+                                            {% elif candidate.stage == 'Interview Hold' %}
+                                            <span class="badge bg-warning text-dark">Interview Hold</span>
+                                            {% endif %}
                                         </td>
                                         <td>
+                                            <a href="{{ url_for('candidate_detail', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            
                                             {% if candidate.resume_filename %}
                                             <a href="{{ url_for('get_resume', cand_id=candidate.id) }}" 
                                                class="btn btn-sm btn-outline-secondary">
                                                 <i class="fas fa-file-pdf"></i>
                                             </a>
                                             {% endif %}
+                                            
+                                            {% if candidate.stage == 'Screening' %}
                                             <a href="{{ url_for('interview_form', cand_id=candidate.id) }}" 
                                                class="btn btn-sm btn-success">
                                                 <i class="fas fa-comments"></i> Conduct Interview
                                             </a>
+                                            {% elif candidate.stage == 'Interview Hold' %}
+                                            <a href="{{ url_for('interview_form', cand_id=candidate.id) }}" 
+                                               class="btn btn-sm btn-warning">
+                                                <i class="fas fa-redo"></i> Interview Again
+                                            </a>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                     {% endif %}

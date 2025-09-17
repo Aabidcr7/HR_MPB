@@ -1,3 +1,17 @@
 id,candidate_id,interviewer_name,interview_type,technical_score,problem_solving_score,communication_score,cultural_fit_score,overall_score,comments,status,interview_date
 1,1,Mike Wilson,Technical,8,9,8,9,8.5,Candidate performed well in the technical interview. Demonstrated strong problem-solving skills and good understanding of system design. Cultural fit is excellent. Recommend for offer.,Shortlisted,2024-01-25 15:30:00
-2,1,aabud,Final,7,9,10,10,9,good,Shortlisted,2025-09-08 11:48:45
+2,1,aabud,Final,7,9,10,10,9.0,good,Shortlisted,2025-09-08 11:48:45
+3,2,aabid,Final,9,6,9,10,8.0,good,Shortlisted,2025-09-08 12:22:37
+4,3,Aabid,Final,8,8,9,4,7.0,Good ,Hold,2025-09-09 10:55:25
+5,6,Aabid,Final,9,7,7,8,7.0,Good,Hold,2025-09-09 11:02:19
+6,6,Aabid,Managerial,9,8,8,7,8.0,Good,Shortlisted,2025-09-09 11:02:51
+7,7,Aabid,Final,4,6,8,8,6.0,Good,Shortlisted,2025-09-09 11:08:34
+8,8,Aabid,Final,7,6,5,8,6.0,good,Shortlisted,2025-09-09 11:19:07
+9,9,mithun sunder,Final,9,9,9,8,8.0,Good,Hold,2025-09-09 12:17:39
+10,9,yadhav,Final,10,10,10,10,10.0,Good ,Shortlisted,2025-09-09 12:18:17
+11,11,mithun sunder,Final,9,9,8,9,8.0,Good,Hold,2025-09-09 16:55:20
+12,11,yadhav,Final,9,9,8,8,8.0,Good ,Shortlisted,2025-09-09 16:56:00
+13,12,mithun sunder,Final,9,8,6,8,7.0,Good,Shortlisted,2025-09-09 17:10:54
+14,10,yadhav,Final,8,8,8,8,8.0,good,Shortlisted,2025-09-09 17:33:50
+15,13,yadhav,Final,9,9,8,7,8.0,Good,Shortlisted,2025-09-09 17:34:32
+16,14,yadhav,Final,9,8,8,9,8,Good,Shortlisted,2025-09-10 15:10:12

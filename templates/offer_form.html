@@ -43,7 +43,7 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Annual Salary <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text">$</span>
+                                <span class="input-group-text">₹</span>
                                 <input type="number" class="form-control" name="salary" required>
                             </div>
                         </div>
@@ -66,8 +66,7 @@
 
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
-                        <strong>Note:</strong> An offer letter will be automatically generated after creating the offer. 
-                        You can view and download the offer letter from the candidate's actions menu.
+                        <strong>Note:</strong> An offer letter will be automatically generated and opened in a new tab after creating the offer.
                     </div>
 
                     <div class="d-flex gap-2">
@@ -83,4 +82,55 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(form);
+            
+            // Submit form via fetch
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Open offer letter in new tab
+                    const candidateId = '{{ candidate.id }}';
+                    const offerLetterUrl = '/offer-letter/' + candidateId;
+                    window.open(offerLetterUrl, '_blank');
+                    
+                    // Show success message
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                    alertDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i><strong>Success!</strong> Offer created successfully and offer letter opened in new tab.<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                    
+                    // Insert alert at the top of the form
+                    const formContainer = document.querySelector('.card-body');
+                    formContainer.insertBefore(alertDiv, formContainer.firstChild);
+                    
+                    // Reset form
+                    form.reset();
+                } else {
+                    throw new Error('Failed to create offer');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                alertDiv.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i><strong>Error!</strong> Failed to create offer. Please try again.<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                
+                const formContainer = document.querySelector('.card-body');
+                formContainer.insertBefore(alertDiv, formContainer.firstChild);
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

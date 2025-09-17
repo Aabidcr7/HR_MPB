@@ -1,3 +1,27 @@
 id,candidate_id,screener_name,technical_score,communication_score,experience_score,overall_score,comments,status,screening_date
 1,1,Sarah Johnson,8,9,8,8.3,Candidate demonstrates strong technical skills in Python and Django. Excellent communication skills and relevant experience. Good fit for the role. Recommend moving to interview stage.,Shortlisted,2024-01-22 11:15:00
-2,1,aabid,7,6,9,8,Good,Shortlisted,2025-09-08 11:47:46
+2,1,aabid,7,6,9,8.0,Good,Shortlisted,2025-09-08 11:47:46
+3,2,aabid,7,8,9,8.0,Good,Rejected,2025-09-08 12:19:43
+4,2,aabid,9,8,8,9.0,good,Rejected,2025-09-08 12:20:28
+5,2,aabid,8,9,8,8.0,good,Shortlisted,2025-09-08 12:21:24
+6,3,mithun,9,7,6,8.0,good ,Rejected,2025-09-08 18:19:39
+7,3,mithun,9,7,7,8.0,good,Shortlisted,2025-09-08 18:20:23
+8,4,mithun,9,9,8,8.0,good,Hold,2025-09-08 18:24:32
+9,5,dinesh,6,8,9,7.0,Good,Hold,2025-09-09 10:49:55
+10,6,dinesh,8,8,6,7.0,Good,Hold,2025-09-09 11:01:28
+11,6,dinesh,9,10,8,9.0,Good,Shortlisted,2025-09-09 11:01:53
+12,7,dinesh,7,7,7,7.0,Good,Shortlisted,2025-09-09 11:08:05
+13,8,dinesh,9,7,7,7.0,Good,Shortlisted,2025-09-09 11:18:42
+14,9,dinesh,8,9,9,8.0,good,Hold,2025-09-09 12:09:39
+15,9,dinesh,9,9,8,8.0,bad,Shortlisted,2025-09-09 12:10:05
+16,10,dinesh,8,6,8,7.0,Good,Hold,2025-09-09 15:50:04
+17,10,aabid,8,7,8,7.0,Good,Shortlisted,2025-09-09 15:50:58
+18,10,dinesh,6,6,7,6.0,Good,Hold,2025-09-09 16:48:08
+19,10,aabid,8,8,8,8.0,Good,Shortlisted,2025-09-09 16:50:30
+20,11,aabid,8,9,9,8.0,good,Hold,2025-09-09 16:53:26
+21,11,yoki,9,6,8,7.0,Good,Shortlisted,2025-09-09 16:54:08
+22,12,yoki,8,7,9,8.0,Good ,Hold,2025-09-09 17:09:42
+23,12,yoki,7,7,7,7.0,Good,Shortlisted,2025-09-09 17:10:07
+24,13,dinesh,7,7,7,7.0,good,Shortlisted,2025-09-09 17:33:25
+25,14,yoki,8,9,8,8.0,Good,Hold,2025-09-10 15:09:04
+26,14,dinesh,9,9,9,9,Good,Shortlisted,2025-09-10 15:09:31

@@ -1,2 +1,15 @@
-id,requisition_id,name,email,phone,experience,skills,resume_filename,stage,applied_date,current_salary,expected_salary,notice_period
-1,1,Jane Doe,jane.doe@email.com,+1-555-123-4567,6,"Python, Django, React, AWS, PostgreSQL",jane_doe_resume.pdf,Onboarded,2024-01-20 14:25:00,$95000,$110000,30 days
+id,requisition_id,name,email,phone,experience,skills,resume_filename,stage,applied_date,current_salary,expected_salary,notice_period,source
+1,1,Jane Doe,jane.doe@email.com,+1-555-123-4567,6,"Python, Django, React, AWS, PostgreSQL",jane_doe_resume.pdf,Resigned,2024-01-20 14:25:00,₹95000,₹110000,30 days,Job Board
+2,2,mithun,aabidibrahim2004@gmail.com,8122069684,4,python,081a1379-fa90-48cd-b97a-b05845ad49de_Hr_Recruitment__Employee_Lifecycle_Cursor_Step-by-step_Prompts.pdf,Resigned,2025-09-08 12:18:39,₹400000,₹70000,30 days,Referral
+3,1,yadhav,yadhav@gmail.com,8122069684,4,scraping,853298a0-d852-4add-840a-996f5c7a9516_Naoris_Protocol_Financial_Projections_1.pdf,Hold,2025-09-08 18:19:02,₹60000,₹100000,2 days,Direct
+4,1,aabid,aabidibrahim2004@gmail.com,09833096804,4,python ,c5bed310-b1cc-44d5-82dd-f30dca4c2302_Equity_Myprobuddy_Finetuned_prompts.pdf,Hold,2025-09-08 18:24:14,₹60000,₹100000,,Campus
+5,3,cr7,aabidibrahim2004@gmail.com,8122069684,5,python ,2c3b5fa6-a548-4b72-8dfe-d34eb8f9e2b9_Equity_Myprobuddy_Finetuned_prompts.pdf,Hold,2025-09-09 10:38:45,50000,80000,5,Direct
+6,3,lm10,aabidibrahim2004@gmail.com,8122069684,6,python ,472d0bc2-1bd5-4aa9-a638-822427147b0d_Equity_Myprobuddy_Finetuned_prompts_1.pdf,Resigned,2025-09-09 11:01:07,50000,80000,5,Referral
+7,2,mpb,transferbetter2022@gmail.com,+1555666777,6,"c , c++",a7dda1f7-7040-418d-bf1d-72452e5bd80d_Serenity_Cruise_Lines_Proposal_1_1.pdf,Resigned,2025-09-09 11:07:48,50000,80000,5,Direct
+8,2,Rook,aabid@myprobuddy.com,97890 32791,9,"c, c++",58a249a8-fab0-44f5-8547-cb65a68f030b_Equity_Myprobuddy_Finetuned_prompts.pdf,Onboarded,2025-09-09 11:18:08,50000,80000,5,Direct
+9,2,aabid,21cs194@stjosephs.ac.in,+1555666777,8,python,1daff18a-83b6-42dc-91bb-dcd5a4c0aa0a_Equity_Myprobuddy_Finetuned_prompts.pdf,Onboarded,2025-09-09 12:09:09,50000,80000,7,Job Board
+10,2,AABID's Team,aabidibrahims@gmail.com,989789089,4,"C, C++",1734f012-53a5-4735-abfe-0ee065fd600c_CRM_Module_Changes__Enhancements.pdf,Onboarded,2025-09-09 16:47:39,50000,80000,3,Direct
+11,3,aabid ibrahim,aabidibrahim@gmail.com,8122069684,6,djanjo,686994f4-cbb5-4545-a255-7a463c2d6f7d_Equity.MyProBuddy.com_Process_Flow_Screen_By_Screen_1.pdf,Onboarded,2025-09-09 16:53:03,50000,80000,8,Direct
+12,4,yadhav S,yadhav@mpb.com,83789792,3,Python,23f9bac1-cfb2-41bb-9199-d2a8fe7dce65_Equity.MyProBuddy.com_Process_Flow_Screen_By_Screen_1.pdf,Resigned,2025-09-09 17:09:00,50000,80000,4,Direct
+13,4,amrish kris,aabid@myprobuddy.com,83789792,7,c++,d586c007-b5c9-4a06-a09e-57784f934e09_Self-Service_Investor_CRM_Portal__User_Journey_Flow_Documentation.pdf,Onboarded,2025-09-09 17:33:10,50000,80000,4,Direct
+14,5,aabid,aabid@myprobuddy.com,873983478347,3,"Python , C ",d4f4a0f9-b959-4b65-b38e-2f7a403513f0_Equity_Myprobuddy_Finetuned_prompts_1.pdf,Onboarded,2025-09-10 15:08:28,50000,80000,8,Direct

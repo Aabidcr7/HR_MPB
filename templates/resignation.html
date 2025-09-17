@@ -19,7 +19,7 @@
                         <p><strong>Phone:</strong> {{ candidate.phone }}</p>
                     </div>
                     <div class="col-md-4">
-                        <p><strong>Department:</strong> {{ candidate.get('department', 'N/A') }}</p>
+                    
                         <p><strong>Current Stage:</strong> <span class="badge bg-primary">{{ candidate.stage }}</span></p>
                     </div>
                     <div class="col-md-4">
@@ -28,17 +28,17 @@
                     </div>
                 </div>
 
-                <form method="POST" action="{{ url_for('submit_resignation') }}">
+                <form id="resignationForm" method="POST" action="{{ url_for('submit_resignation') }}">
                     <input type="hidden" name="candidate_id" value="{{ candidate.id }}">
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Resignation Date <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" name="resignation_date" required>
+                            <input type="date" class="form-control" name="resignation_date" value="{{ existing.resignation_date if existing else '' }}" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Last Working Date <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" name="last_working_date" required>
+                            <input type="date" class="form-control" name="last_working_date" value="{{ existing.last_working_date if existing else '' }}" required>
                         </div>
                     </div>
 
@@ -46,16 +46,10 @@
                         <label class="form-label">Reason for Resignation <span class="text-danger">*</span></label>
                         <select class="form-control" name="reason" required>
                             <option value="">Select Reason</option>
-                            <option value="Better Opportunity">Better Opportunity</option>
-                            <option value="Career Growth">Career Growth</option>
-                            <option value="Higher Salary">Higher Salary</option>
-                            <option value="Work-Life Balance">Work-Life Balance</option>
-                            <option value="Relocation">Relocation</option>
-                            <option value="Personal Reasons">Personal Reasons</option>
-                            <option value="Health Issues">Health Issues</option>
-                            <option value="Education/Studies">Education/Studies</option>
-                            <option value="Retirement">Retirement</option>
-                            <option value="Other">Other</option>
+                            {% set reason_val = existing.reason if existing else '' %}
+                            {% for opt in ['Better Opportunity','Career Growth','Higher Salary','Work-Life Balance','Relocation','Personal Reasons','Health Issues','Education/Studies','Retirement','Other'] %}
+                            <option value="{{ opt }}" {{ 'selected' if reason_val == opt else '' }}>{{ opt }}</option>
+                            {% endfor %}
                         </select>
                     </div>
 
@@ -63,11 +57,14 @@
                         <h6 class="mb-3">
                             <i class="fas fa-clipboard-check me-2"></i>Exit Clearance Checklist
                         </h6>
-                        
+                        {% set exit_interview_val = existing.exit_interview_completed if existing else 'No' %}
+                        {% set laptop_val = existing.laptop_returned if existing else 'No' %}
+                        {% set idcard_val = existing.id_card_returned if existing else 'No' %}
+                        {% set clearance_val = existing.clearance_completed if existing else 'No' %}
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" name="exit_interview_completed" value="Yes" id="exit_interview">
+                                    <input class="form-check-input" type="checkbox" name="exit_interview_completed" value="Yes" id="exit_interview" {{ 'checked' if exit_interview_val == 'Yes' else '' }}>
                                     <label class="form-check-label" for="exit_interview">
                                         <i class="fas fa-comments me-2"></i>Exit Interview Completed
                                         <small class="text-muted d-block">Feedback session conducted</small>
@@ -75,7 +72,7 @@
                                 </div>
 
                                 <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" name="laptop_returned" value="Yes" id="laptop_returned">
+                                    <input class="form-check-input" type="checkbox" name="laptop_returned" value="Yes" id="laptop_returned" {{ 'checked' if laptop_val == 'Yes' else '' }}>
                                     <label class="form-check-label" for="laptop_returned">
                                         <i class="fas fa-laptop me-2"></i>Laptop/Equipment Returned
                                         <small class="text-muted d-block">All company hardware returned</small>
@@ -85,7 +82,7 @@
 
                             <div class="col-md-6">
                                 <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" name="id_card_returned" value="Yes" id="id_card_returned">
+                                    <input class="form-check-input" type="checkbox" name="id_card_returned" value="Yes" id="id_card_returned" {{ 'checked' if idcard_val == 'Yes' else '' }}>
                                     <label class="form-check-label" for="id_card_returned">
                                         <i class="fas fa-id-card me-2"></i>ID Card Returned
                                         <small class="text-muted d-block">Employee ID card returned</small>
@@ -93,7 +90,7 @@
                                 </div>
 
                                 <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" name="clearance_completed" value="Yes" id="clearance_completed">
+                                    <input class="form-check-input" type="checkbox" name="clearance_completed" value="Yes" id="clearance_completed" {{ 'checked' if clearance_val == 'Yes' else '' }}>
                                     <label class="form-check-label" for="clearance_completed">
                                         <i class="fas fa-check-circle me-2"></i>Department Clearance
                                         <small class="text-muted d-block">All departmental clearances obtained</small>
@@ -105,32 +102,26 @@
 
                     <div class="mb-3">
                         <label class="form-label">Final Settlement Status</label>
+                        {% set final_val = existing.final_settlement if existing else 'Pending' %}
                         <select class="form-control" name="final_settlement">
-                            <option value="Pending">Pending</option>
-                            <option value="In Process">In Process</option>
-                            <option value="Completed">Completed</option>
+                            {% for opt in ['Pending','In Process','Completed'] %}
+                            <option value="{{ opt }}" {{ 'selected' if final_val == opt else '' }}>{{ opt }}</option>
+                            {% endfor %}
                         </select>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">HR Representative <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="hr_representative" required>
+                        <input type="text" class="form-control" name="hr_representative" value="{{ existing.hr_representative if existing else '' }}" required>
                     </div>
 
                     <div class="mb-4">
                         <label class="form-label">Additional Comments</label>
-                        <textarea class="form-control" name="comments" rows="4" 
-                                  placeholder="Add any additional notes about the resignation process, exit interview feedback, or handover details..."></textarea>
-                    </div>
-
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Important:</strong> Submitting this form will update the employee's status to "Resigned" and complete their lifecycle in the system.
+                        <textarea class="form-control" name="comments" rows="4">{{ existing.comments if existing else '' }}</textarea>
                     </div>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-danger" 
-                                onclick="return confirm('Are you sure you want to process this resignation? This action cannot be undone.')">
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmResignationModal">
                             <i class="fas fa-sign-out-alt me-1"></i>Process Resignation
                         </button>
                         <a href="{{ url_for('requisition_detail', req_id=candidate.requisition_id) }}" class="btn btn-secondary">
@@ -142,4 +133,40 @@
         </div>
     </div>
 </div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmResignationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Confirm Resignation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning mb-3">
+          <strong>Important:</strong> Submitting will update the employee's status to "Resigned" and complete their lifecycle in the system.
+        </div>
+        <p class="mb-0">Are you sure you want to process this resignation? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmResignationBtn">
+            <i class="fas fa-sign-out-alt me-1"></i>Yes, Process Resignation
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const confirmBtn = document.getElementById('confirmResignationBtn');
+    confirmBtn?.addEventListener('click', function() {
+      const form = document.getElementById('resignationForm');
+      if (form) {
+        form.submit();
+      }
+    });
+  });
+</script>
 {% endblock %}

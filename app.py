@@ -4,7 +4,7 @@ import pandas as pd
 import logging
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file, make_response
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, make_response, Response
 import uuid
 import io
 
@@ -79,9 +79,41 @@ def update_candidate_stage(candidate_id, new_stage):
 
 @app.route('/')
 def dashboard():
-    """Main dashboard showing requisitions"""
+    """Main dashboard showing requisitions and quick statistics"""
     requisitions_df = read_csv_safe(os.path.join(CSV_FOLDER, 'requisitions.csv'))
-    return render_template('dashboard.html', requisitions=requisitions_df.to_dict('records'))
+    candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    interviews_df = read_csv_safe(os.path.join(CSV_FOLDER, 'interviews.csv'))
+    offers_df = read_csv_safe(os.path.join(CSV_FOLDER, 'offers.csv'))
+
+    # Compute quick stats
+    try:
+        open_requisitions = int((requisitions_df['status'] == 'Open').sum()) if not requisitions_df.empty else 0
+    except Exception:
+        open_requisitions = 0
+
+    try:
+        active_candidates = int((candidates_df['stage'].isin(['Applied', 'Screening', 'Screening Hold', 'Interview', 'Interview Hold'])).sum()) if not candidates_df.empty else 0
+    except Exception:
+        active_candidates = 0
+
+    try:
+        interviews_pending = int((candidates_df['stage'].isin(['Screening', 'Interview'])).sum()) if not candidates_df.empty else 0
+    except Exception:
+        interviews_pending = 0
+
+    try:
+        offers_extended = int(len(offers_df)) if not offers_df.empty else 0
+    except Exception:
+        offers_extended = 0
+
+    stats = {
+        'open_requisitions': open_requisitions,
+        'active_candidates': active_candidates,
+        'interviews_pending': interviews_pending,
+        'offers_extended': offers_extended,
+    }
+
+    return render_template('dashboard.html', requisitions=requisitions_df.to_dict('records'), stats=stats)
 
 @app.route('/requisitions', methods=['GET', 'POST'])
 def requisitions():
@@ -97,6 +129,9 @@ def requisitions():
             'number_of_openings': request.form['number_of_openings'],
             'department': request.form['department'],
             'location': request.form['location'],
+            'salary_min': request.form['salary_min'],
+            'salary_max': request.form['salary_max'],
+            'job_type': request.form['job_type'],
             'requirements': request.form['requirements'],
             'status': 'Open',
             'created_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -168,7 +203,8 @@ def add_candidate(req_id):
             'applied_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'current_salary': request.form.get('current_salary', ''),
             'expected_salary': request.form.get('expected_salary', ''),
-            'notice_period': request.form.get('notice_period', '')
+            'notice_period': request.form.get('notice_period', ''),
+            'source': request.form.get('source', '')
         }
         
         if append_to_csv(candidate_data, os.path.join(CSV_FOLDER, 'candidates.csv')):
@@ -182,56 +218,110 @@ def add_candidate(req_id):
     
     return redirect(url_for('requisition_detail', req_id=req_id))
 
+@app.route('/candidates/bulk-sample')
+def download_bulk_candidate_sample():
+    """Provide a sample CSV for candidates bulk upload"""
+    sample_headers = [
+        'requisition_id', 'name', 'email', 'phone', 'experience', 'skills',
+        'current_salary', 'expected_salary', 'notice_period', 'source', 'resume_filename'
+    ]
+    sample_rows = [
+        ['1', 'John Doe', 'john@example.com', '9999999999', '5', 'Python, Flask', '₹800000', '₹1000000', '30', 'Job Board', 'john_doe_resume.pdf'],
+        ['2', 'Jane Smith', 'jane@example.com', '8888888888', '3', 'SQL, Excel', '₹600000', '₹750000', '15', 'Referral', 'jane_smith_resume.pdf'],
+    ]
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(sample_headers)
+    writer.writerows(sample_rows)
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv',
+        headers={
+            'Content-Disposition': 'attachment; filename=candidates_bulk_sample.csv'
+        }
+    )
+
 @app.route('/candidates/bulk-upload', methods=['POST'])
 def bulk_upload_candidates():
-    """Handle CSV upload to bulk-add candidates"""
-    if 'csv_file' not in request.files:
-        flash('No file selected!', 'error')
+    """Handle CSV + resume files upload to bulk-add candidates"""
+    # Expect a single multi-file input named 'bulk_files' containing one CSV and multiple resume files
+    uploaded_files = request.files.getlist('bulk_files') if 'bulk_files' in request.files else []
+    if not uploaded_files:
+        flash('Please select a CSV file (and resume files).', 'error')
         return redirect(request.referrer)
-    
-    file = request.files['csv_file']
-    if not file.filename or file.filename == '' or not file.filename.endswith('.csv'):
-        flash('Please select a valid CSV file!', 'error')
+
+    csv_file = None
+    resume_files = []
+    for f in uploaded_files:
+        if not f or not f.filename:
+            continue
+        if f.filename.lower().endswith('.csv') and csv_file is None:
+            csv_file = f
+        else:
+            resume_files.append(f)
+
+    if not csv_file:
+        flash('No CSV file found in selection.', 'error')
         return redirect(request.referrer)
-    
+
     try:
+        # Save resumes and map original names to unique saved names
+        original_to_saved_resume = {}
+        for resume_file in resume_files:
+            if not allowed_file(resume_file.filename):
+                continue
+            original_name = secure_filename(resume_file.filename)
+            unique_name = f"{uuid.uuid4()}_{original_name}"
+            resume_file.save(os.path.join(UPLOAD_FOLDER, unique_name))
+            original_to_saved_resume[original_name] = unique_name
+
         # Read uploaded CSV
-        stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
+        stream = io.StringIO(csv_file.stream.read().decode('UTF8'), newline=None)
         csv_input = csv.DictReader(stream)
-        
+
         candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
-        
+
         count = 0
         for row in csv_input:
+            # Basic normalization
+            row = {k.strip(): (v.strip() if isinstance(v, str) else v) for k, v in row.items()}
+
+            # Map optional resume filename to saved file if provided
+            saved_resume = ''
+            if 'resume_filename' in row and row['resume_filename']:
+                original_name = secure_filename(row['resume_filename'])
+                saved_resume = original_to_saved_resume.get(original_name, '')
+
             candidate_data = {
-                'id': get_next_id(os.path.join(CSV_FOLDER, 'candidates.csv')) + count,
-                'requisition_id': row.get('requisition_id', ''),
+                'id': get_next_id(os.path.join(CSV_FOLDER, 'candidates.csv')),
+                'requisition_id': int(row.get('requisition_id', 0) or 0),
                 'name': row.get('name', ''),
                 'email': row.get('email', ''),
                 'phone': row.get('phone', ''),
                 'experience': row.get('experience', ''),
                 'skills': row.get('skills', ''),
-                'resume_filename': '',
-                'stage': 'Applied',
-                'applied_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'current_salary': row.get('current_salary', ''),
                 'expected_salary': row.get('expected_salary', ''),
-                'notice_period': row.get('notice_period', '')
+                'notice_period': row.get('notice_period', ''),
+                'source': row.get('source', ''),
+                'applied_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'stage': 'Applied',
+                'resume_filename': saved_resume,
             }
-            
-            new_row = pd.DataFrame([candidate_data])
-            candidates_df = pd.concat([candidates_df, new_row], ignore_index=True)
+
+            candidates_df = pd.concat([candidates_df, pd.DataFrame([candidate_data])], ignore_index=True)
             count += 1
-        
+
         if write_csv_safe(candidates_df, os.path.join(CSV_FOLDER, 'candidates.csv')):
-            flash(f'{count} candidates uploaded successfully!', 'success')
+            flash(f'Successfully uploaded {count} candidates.', 'success')
         else:
-            flash('Error uploading candidates!', 'error')
-            
+            flash('Error saving candidates!', 'error')
+
     except Exception as e:
         logging.error(f"Error in bulk upload: {e}")
-        flash('Error processing CSV file!', 'error')
-    
+        flash('Error processing bulk upload!', 'error')
+
     return redirect(request.referrer)
 
 @app.route('/candidates/<int:cand_id>/resume')
@@ -254,6 +344,40 @@ def get_resume(cand_id):
     except FileNotFoundError:
         flash('Resume file not found!', 'error')
         return redirect(request.referrer)
+
+@app.route('/candidates/<int:cand_id>/resume-preview')
+def preview_resume(cand_id):
+    """Preview the resume file inline"""
+    candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    candidate = candidates_df[candidates_df['id'] == cand_id]
+    
+    if candidate.empty:
+        return "Candidate not found", 404
+    
+    resume_filename = candidate.iloc[0]['resume_filename']
+    if not resume_filename:
+        return "No resume found for this candidate", 404
+    
+    try:
+        file_path = os.path.join(UPLOAD_FOLDER, resume_filename)
+        if not os.path.exists(file_path):
+            return "Resume file not found", 404
+        
+        # Get file extension to determine content type
+        file_ext = resume_filename.lower().split('.')[-1]
+        content_types = {
+            'pdf': 'application/pdf',
+            'doc': 'application/msword',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'txt': 'text/plain'
+        }
+        
+        content_type = content_types.get(file_ext, 'application/octet-stream')
+        
+        return send_file(file_path, mimetype=content_type, as_attachment=False)
+    except Exception as e:
+        logging.error(f"Error previewing resume: {e}")
+        return "Error loading resume", 500
 
 @app.route('/screening/<int:cand_id>')
 def screening_form(cand_id):
@@ -287,9 +411,14 @@ def submit_screening():
         }
         
         if append_to_csv(screening_data, os.path.join(CSV_FOLDER, 'screening.csv')):
-            # If shortlisted, move to Interview stage
-            if request.form['status'] == 'Shortlisted':
+            # Update candidate stage based on screening status
+            status_value = request.form['status']
+            if status_value == 'Shortlisted':
                 update_candidate_stage(candidate_id, 'Screening')
+            elif status_value == 'Rejected':
+                update_candidate_stage(candidate_id, 'Rejected')
+            elif status_value == 'Hold':
+                update_candidate_stage(candidate_id, 'Screening Hold')
             flash('Screening result submitted successfully!', 'success')
         else:
             flash('Error submitting screening result!', 'error')
@@ -334,9 +463,14 @@ def submit_interview():
         }
         
         if append_to_csv(interview_data, os.path.join(CSV_FOLDER, 'interviews.csv')):
-            # If shortlisted, move to Offer stage
-            if request.form['status'] == 'Shortlisted':
+            # Update candidate stage based on interview status
+            status_value = request.form['status']
+            if status_value == 'Shortlisted':
                 update_candidate_stage(candidate_id, 'Interview')
+            elif status_value == 'Rejected':
+                update_candidate_stage(candidate_id, 'Rejected')
+            elif status_value == 'Hold':
+                update_candidate_stage(candidate_id, 'Interview Hold')
             flash('Interview result submitted successfully!', 'success')
         else:
             flash('Error submitting interview result!', 'error')
@@ -412,6 +546,8 @@ def generate_offer_letter(cand_id):
 def onboarding(cand_id):
     """Show onboarding page for employee"""
     candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    offers_df = read_csv_safe(os.path.join(CSV_FOLDER, 'offers.csv'))
+    requisitions_df = read_csv_safe(os.path.join(CSV_FOLDER, 'requisitions.csv'))
     onboarding_df = read_csv_safe(os.path.join(CSV_FOLDER, 'onboarding.csv'))
     
     candidate = candidates_df[candidates_df['id'] == cand_id]
@@ -419,11 +555,38 @@ def onboarding(cand_id):
         flash('Candidate not found!', 'error')
         return redirect(url_for('dashboard'))
     
+    candidate_data = candidate.iloc[0].to_dict()
+    
+    # Fetch requisition information for this candidate (original position)
+    if candidate_data.get('requisition_id') and candidate_data.get('requisition_id') != '0':
+        requisition_data = requisitions_df[requisitions_df['id'] == int(candidate_data['requisition_id'])]
+        if not requisition_data.empty:
+            requisition = requisition_data.iloc[0].to_dict()
+            # Add requisition information to candidate data
+            candidate_data.update({
+                'position': requisition.get('position_title', 'N/A'),
+                'requisition_department': requisition.get('department', 'N/A')
+            })
+    
+    # Fetch offer information for this candidate
+    offer_data = offers_df[offers_df['candidate_id'] == cand_id]
+    if not offer_data.empty:
+        offer = offer_data.iloc[0].to_dict()
+        # Add offer information to candidate data
+        candidate_data.update({
+            'department': offer.get('department', 'N/A'),
+            'job_title': offer.get('job_title', 'N/A'),
+            'joining_date': offer.get('joining_date', 'N/A'),
+            'location': offer.get('location', 'N/A'),
+            'salary': offer.get('salary', 'N/A'),
+            'benefits': offer.get('benefits', 'N/A')
+        })
+    
     onboarding_record = onboarding_df[onboarding_df['candidate_id'] == cand_id]
     onboarding_data = onboarding_record.iloc[0].to_dict() if not onboarding_record.empty else {}
     
     return render_template('onboarding.html', 
-                         candidate=candidate.iloc[0].to_dict(),
+                         candidate=candidate_data,
                          onboarding=onboarding_data)
 
 @app.route('/onboarding', methods=['POST'])
@@ -462,33 +625,64 @@ def update_onboarding():
 def resignation_form(cand_id):
     """Show resignation form"""
     candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    resignations_df = read_csv_safe(os.path.join(CSV_FOLDER, 'resignations.csv'))
+    offers_df = read_csv_safe(os.path.join(CSV_FOLDER, 'offers.csv'))
+
     candidate = candidates_df[candidates_df['id'] == cand_id]
     
     if candidate.empty:
         flash('Employee not found!', 'error')
         return redirect(url_for('dashboard'))
+
+    candidate_dict = candidate.iloc[0].to_dict()
+
+    # Enrich department from offer
+    offer_row = offers_df[offers_df['candidate_id'] == cand_id]
+    if not offer_row.empty:
+        offer = offer_row.iloc[0].to_dict()
+        candidate_dict['department'] = offer.get('department', candidate_dict.get('department', 'N/A'))
+
+    # Preload latest resignation (if any)
+    existing = None
+    res_rows = resignations_df[resignations_df['candidate_id'] == cand_id]
+    if not res_rows.empty:
+        try:
+            res_rows = res_rows.sort_values(by='resignation_date')
+        except Exception:
+            pass
+        existing = res_rows.iloc[-1].to_dict()
     
-    return render_template('resignation.html', candidate=candidate.iloc[0].to_dict())
+    return render_template('resignation.html', candidate=candidate_dict, existing=existing)
 
 @app.route('/resignation', methods=['POST'])
 def submit_resignation():
     """Record resignation"""
     try:
         candidate_id = int(request.form['candidate_id'])
-        
+
+        # Compute completion status from checklist
+        exit_interview = request.form.get('exit_interview_completed', 'No')
+        laptop_ret = request.form.get('laptop_returned', 'No')
+        id_card_ret = request.form.get('id_card_returned', 'No')
+        clearance = request.form.get('clearance_completed', 'No')
+        final_settlement = request.form.get('final_settlement', 'Pending')
+        completion_status = 'Completed' if (exit_interview == 'Yes' and laptop_ret == 'Yes' and id_card_ret == 'Yes' and clearance == 'Yes' and final_settlement == 'Completed') else 'In Progress'
+
         resignation_data = {
             'id': get_next_id(os.path.join(CSV_FOLDER, 'resignations.csv')),
             'candidate_id': candidate_id,
             'resignation_date': request.form['resignation_date'],
             'last_working_date': request.form['last_working_date'],
             'reason': request.form['reason'],
-            'exit_interview_completed': request.form.get('exit_interview_completed', 'No'),
-            'laptop_returned': request.form.get('laptop_returned', 'No'),
-            'id_card_returned': request.form.get('id_card_returned', 'No'),
-            'clearance_completed': request.form.get('clearance_completed', 'No'),
-            'final_settlement': request.form.get('final_settlement', 'Pending'),
+            'exit_interview_completed': exit_interview,
+            'laptop_returned': laptop_ret,
+            'id_card_returned': id_card_ret,
+            'clearance_completed': clearance,
+            'final_settlement': final_settlement,
             'comments': request.form['comments'],
-            'hr_representative': request.form['hr_representative']
+            'hr_representative': request.form['hr_representative'],
+            'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'completion_status': completion_status,
         }
         
         if append_to_csv(resignation_data, os.path.join(CSV_FOLDER, 'resignations.csv')):
@@ -540,27 +734,160 @@ def offers_page():
 @app.route('/onboarding-page')
 def onboarding_page():
     candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    offers_df = read_csv_safe(os.path.join(CSV_FOLDER, 'offers.csv'))
+    requisitions_df = read_csv_safe(os.path.join(CSV_FOLDER, 'requisitions.csv'))
+    onboarding_df = read_csv_safe(os.path.join(CSV_FOLDER, 'onboarding.csv'))
+    
     # Filter candidates at Offer stage (ready for onboarding)
     offer_candidates = candidates_df[candidates_df['stage'] == 'Offer'].to_dict('records')
     # Also get recently onboarded
     onboarded_candidates = candidates_df[candidates_df['stage'] == 'Onboarded'].to_dict('records')
+    
+    # Add requisition and offer information to candidates
+    for candidate in offer_candidates + onboarded_candidates:
+        # Fetch requisition information (original position)
+        if candidate.get('requisition_id') and candidate.get('requisition_id') != '0':
+            requisition_data = requisitions_df[requisitions_df['id'] == int(candidate['requisition_id'])]
+            if not requisition_data.empty:
+                requisition = requisition_data.iloc[0].to_dict()
+                candidate.update({
+                    'position': requisition.get('position_title', 'N/A'),
+                    'requisition_department': requisition.get('department', 'N/A')
+                })
+        
+        # Fetch offer information
+        offer_data = offers_df[offers_df['candidate_id'] == candidate['id']]
+        if not offer_data.empty:
+            offer = offer_data.iloc[0].to_dict()
+            candidate.update({
+                'department': offer.get('department', 'N/A'),
+                'job_title': offer.get('job_title', 'N/A'),
+                'joining_date': offer.get('joining_date', 'N/A'),
+                'location': offer.get('location', 'N/A'),
+                'salary': offer.get('salary', 'N/A'),
+                'benefits': offer.get('benefits', 'N/A'),
+                'offer_date': offer.get('offer_date', 'N/A')
+            })
+    
+    # Add onboarding information to onboarded candidates
+    for candidate in onboarded_candidates:
+        onboarding_data = onboarding_df[onboarding_df['candidate_id'] == candidate['id']]
+        if not onboarding_data.empty:
+            onboarding = onboarding_data.iloc[0].to_dict()
+            candidate.update({
+                'onboarding_date': onboarding.get('onboarding_date', 'N/A'),
+                'hr_representative': onboarding.get('hr_representative', 'N/A')
+            })
+    
     return render_template('onboarding_list.html', candidates=offer_candidates, onboarded_candidates=onboarded_candidates)
 
 @app.route('/employees-page')
 def employees_page():
     candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    offers_df = read_csv_safe(os.path.join(CSV_FOLDER, 'offers.csv'))
+    requisitions_df = read_csv_safe(os.path.join(CSV_FOLDER, 'requisitions.csv'))
+    
     # Filter employees (onboarded candidates)
     employees = candidates_df[candidates_df['stage'] == 'Onboarded'].to_dict('records')
+    
+    # Add offer and requisition information to employees
+    for employee in employees:
+        # Fetch requisition information (original position)
+        if employee.get('requisition_id') and employee.get('requisition_id') != '0':
+            requisition_data = requisitions_df[requisitions_df['id'] == int(employee['requisition_id'])]
+            if not requisition_data.empty:
+                requisition = requisition_data.iloc[0].to_dict()
+                employee.update({
+                    'position': requisition.get('position_title', 'N/A'),
+                    'requisition_department': requisition.get('department', 'N/A')
+                })
+        
+        # Fetch offer information
+        offer_data = offers_df[offers_df['candidate_id'] == employee['id']]
+        if not offer_data.empty:
+            offer = offer_data.iloc[0].to_dict()
+            employee.update({
+                'department': offer.get('department', 'N/A'),
+                'job_title': offer.get('job_title', 'N/A'),
+                'joining_date': offer.get('joining_date', 'N/A'),
+                'location': offer.get('location', 'N/A'),
+                'salary': offer.get('salary', 'N/A'),
+                'benefits': offer.get('benefits', 'N/A'),
+                'offer_date': offer.get('offer_date', 'N/A')
+            })
+    
     return render_template('employees.html', employees=employees)
 
 @app.route('/resignations-page')
 def resignations_page():
     candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    offers_df = read_csv_safe(os.path.join(CSV_FOLDER, 'offers.csv'))
+    resignations_df = read_csv_safe(os.path.join(CSV_FOLDER, 'resignations.csv'))
+
     # Filter resigned candidates
     resigned_candidates = candidates_df[candidates_df['stage'] == 'Resigned'].to_dict('records')
-    # Also get active employees for resignation processing
+
+    # Enrich resigned candidates with offer department and latest resignation info
+    for cand in resigned_candidates:
+        offer_row = offers_df[offers_df['candidate_id'] == cand['id']]
+        if not offer_row.empty:
+            offer = offer_row.iloc[0].to_dict()
+            cand['department'] = offer.get('department', cand.get('department', 'N/A'))
+
+        res_rows = resignations_df[resignations_df['candidate_id'] == cand['id']]
+        if not res_rows.empty:
+            try:
+                res_rows = res_rows.sort_values(by='resignation_date')
+            except Exception:
+                pass
+            latest = res_rows.iloc[-1].to_dict()
+            cand['resignation_date'] = latest.get('resignation_date', 'N/A')
+            cand['last_working_date'] = latest.get('last_working_date', 'N/A')
+            cand['resignation_reason'] = latest.get('reason', 'N/A')
+
+    # Also get active employees for resignation processing and enrich department from offer
     active_employees = candidates_df[candidates_df['stage'] == 'Onboarded'].to_dict('records')
+    for emp in active_employees:
+        offer_row = offers_df[offers_df['candidate_id'] == emp['id']]
+        if not offer_row.empty:
+            offer = offer_row.iloc[0].to_dict()
+            emp['department'] = offer.get('department', emp.get('department', 'N/A'))
+
     return render_template('resignations_list.html', resigned_candidates=resigned_candidates, active_employees=active_employees)
+
+@app.route('/resignation-details/<int:cand_id>')
+def resignation_detail(cand_id):
+    """Show resignation details and history for an employee"""
+    candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    offers_df = read_csv_safe(os.path.join(CSV_FOLDER, 'offers.csv'))
+    resignations_df = read_csv_safe(os.path.join(CSV_FOLDER, 'resignations.csv'))
+
+    candidate_df = candidates_df[candidates_df['id'] == cand_id]
+    if candidate_df.empty:
+        flash('Employee not found!', 'error')
+        return redirect(url_for('resignations_page'))
+
+    candidate = candidate_df.iloc[0].to_dict()
+
+    # Enrich with offer details (department and job_title)
+    offer_row = offers_df[offers_df['candidate_id'] == cand_id]
+    if not offer_row.empty:
+        offer = offer_row.iloc[0].to_dict()
+        candidate['department'] = offer.get('department', candidate.get('department', 'N/A'))
+        candidate['job_title'] = offer.get('job_title', candidate.get('job_title', 'N/A'))
+
+    # Build resignation history
+    res_rows = resignations_df[resignations_df['candidate_id'] == cand_id]
+    history = []
+    if not res_rows.empty:
+        try:
+            res_rows = res_rows.sort_values(by='resignation_date')
+        except Exception:
+            pass
+        history = res_rows.to_dict('records')
+    latest = history[-1] if history else None
+
+    return render_template('resignation_detail.html', candidate=candidate, resignation=latest, resignation_history=history)
 
 @app.route('/add-employee-direct', methods=['POST'])
 def add_employee_direct():
@@ -583,7 +910,8 @@ def add_employee_direct():
             'resume_filename': '',
             'current_salary': request.form.get('salary', ''),
             'expected_salary': request.form.get('salary', ''),
-            'notice_period': '0'
+            'notice_period': '0',
+            'source': request.form.get('source', 'Direct')
         }
         
         if append_to_csv(employee_data, os.path.join(CSV_FOLDER, 'candidates.csv')):
@@ -597,10 +925,82 @@ def add_employee_direct():
     
     return redirect(url_for('employees_page'))
 
+@app.route('/candidate/<int:cand_id>')
+def candidate_detail(cand_id):
+    """Show candidate details"""
+    candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    screening_df = read_csv_safe(os.path.join(CSV_FOLDER, 'screening.csv'))
+    interviews_df = read_csv_safe(os.path.join(CSV_FOLDER, 'interviews.csv'))
+    offers_df = read_csv_safe(os.path.join(CSV_FOLDER, 'offers.csv'))
+    requisitions_df = read_csv_safe(os.path.join(CSV_FOLDER, 'requisitions.csv'))
+    
+    candidate_data = candidates_df[candidates_df['id'] == cand_id]
+    
+    if candidate_data.empty:
+        flash('Candidate not found!', 'error')
+        return redirect(url_for('candidates_page'))
+    
+    candidate = candidate_data.to_dict('records')[0]
+    
+    # Normalize candidate_id columns to numeric for reliable filtering
+    try:
+        if not screening_df.empty:
+            screening_df['candidate_id'] = pd.to_numeric(screening_df['candidate_id'], errors='coerce')
+        if not interviews_df.empty:
+            interviews_df['candidate_id'] = pd.to_numeric(interviews_df['candidate_id'], errors='coerce')
+    except Exception:
+        pass
+    # Fetch screening attempts (history) for this candidate
+    screening_rows = screening_df[screening_df['candidate_id'] == cand_id]
+    screening_history = []
+    if not screening_rows.empty:
+        try:
+            screening_rows = screening_rows.sort_values(by='screening_date')
+        except Exception:
+            pass
+        screening_history = screening_rows.to_dict('records')
+    latest_screening = screening_history[-1] if screening_history else None
+    
+    # Fetch interview attempts (history) for this candidate
+    interview_rows = interviews_df[interviews_df['candidate_id'] == cand_id]
+    interview_history = []
+    if not interview_rows.empty:
+        try:
+            interview_rows = interview_rows.sort_values(by='interview_date')
+        except Exception:
+            pass
+        interview_history = interview_rows.to_dict('records')
+    latest_interview = interview_history[-1] if interview_history else None
+    
+    # Fetch offer information for this candidate (latest)
+    offer_rows = offers_df[offers_df['candidate_id'] == cand_id]
+    offer = offer_rows.iloc[0].to_dict() if not offer_rows.empty else None
+    
+    # Fetch requisition information for this candidate
+    requisition = None
+    if candidate.get('requisition_id') and candidate.get('requisition_id') != '0':
+        requisition_data = requisitions_df[requisitions_df['id'] == int(candidate['requisition_id'])]
+        if not requisition_data.empty:
+            requisition = requisition_data.iloc[0].to_dict()
+    
+    return render_template(
+        'candidate_detail.html',
+        candidate=candidate,
+        screening=latest_screening,
+        screening_history=screening_history,
+        interview=latest_interview,
+        interview_history=interview_history,
+        offer=offer,
+        requisition=requisition,
+    )
+
 @app.route('/employee/<int:emp_id>')
 def employee_detail(emp_id):
     """Show employee details"""
     candidates_df = read_csv_safe(os.path.join(CSV_FOLDER, 'candidates.csv'))
+    offers_df = read_csv_safe(os.path.join(CSV_FOLDER, 'offers.csv'))
+    requisitions_df = read_csv_safe(os.path.join(CSV_FOLDER, 'requisitions.csv'))
+    
     employee_data = candidates_df[(candidates_df['id'] == emp_id) & (candidates_df['stage'] == 'Onboarded')]
     
     if employee_data.empty:
@@ -608,6 +1008,33 @@ def employee_detail(emp_id):
         return redirect(url_for('employees_page'))
     
     employee = employee_data.to_dict('records')[0]
+    
+    # Fetch requisition information for this employee (original position)
+    if employee.get('requisition_id') and employee.get('requisition_id') != '0':
+        requisition_data = requisitions_df[requisitions_df['id'] == int(employee['requisition_id'])]
+        if not requisition_data.empty:
+            requisition = requisition_data.iloc[0].to_dict()
+            # Add requisition information to employee data
+            employee.update({
+                'position': requisition.get('position_title', 'N/A'),
+                'requisition_department': requisition.get('department', 'N/A')
+            })
+    
+    # Fetch offer information for this employee
+    offer_data = offers_df[offers_df['candidate_id'] == emp_id]
+    if not offer_data.empty:
+        offer = offer_data.iloc[0].to_dict()
+        # Add offer information to employee data
+        employee.update({
+            'job_title': offer.get('job_title', 'N/A'),
+            'department': offer.get('department', 'N/A'),
+            'salary': offer.get('salary', 'N/A'),
+            'joining_date': offer.get('joining_date', 'N/A'),
+            'location': offer.get('location', 'N/A'),
+            'benefits': offer.get('benefits', 'N/A'),
+            'offer_date': offer.get('offer_date', 'N/A')
+        })
+    
     return render_template('employee_detail.html', employee=employee)
 
 # Helper function to read CSV data as dictionaries for compatibility

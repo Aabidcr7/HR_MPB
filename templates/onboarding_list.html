@@ -34,8 +34,8 @@
                                         <td>{{ candidate.name }}</td>
                                         <td>{{ candidate.email }}</td>
                                         <td>{{ candidate.get('department', 'N/A') }}</td>
-                                        <td>{{ candidate.get('join_date', 'TBD') }}</td>
-                                        <td>{{ candidate.applied_date.split()[0] if candidate.applied_date else 'N/A' }}</td>
+                                        <td>{{ candidate.get('joining_date', 'TBD') }}</td>
+                                        <td>{{ candidate.get('offer_date', 'N/A').split()[0] if candidate.get('offer_date') and candidate.get('offer_date') != 'N/A' else 'N/A' }}</td>
                                         <td>
                                             <span class="badge bg-warning">Pending Onboarding</span>
                                         </td>
@@ -91,7 +91,7 @@
                                         <td>EMP{{ candidate.id }}</td>
                                         <td>{{ candidate.name }}</td>
                                         <td>{{ candidate.get('department', 'N/A') }}</td>
-                                        <td>{{ candidate.applied_date.split()[0] if candidate.applied_date else 'N/A' }}</td>
+                                        <td>{{ candidate.get('onboarding_date', 'N/A').split()[0] if candidate.get('onboarding_date') and candidate.get('onboarding_date') != 'N/A' else 'N/A' }}</td>
                                         <td>
                                             <span class="badge bg-success">Onboarded</span>
                                         </td>

@@ -1,3 +1,13 @@
 id,candidate_id,job_title,salary,joining_date,department,location,benefits,offer_letter_generated,offer_date,status
 1,1,Senior Software Engineer,108000,2024-02-15,Engineering,"San Francisco, CA","Health insurance, dental coverage, 401k matching, flexible PTO, remote work options, professional development budget",Yes,2024-01-28 10:00:00,Sent
 2,1,developer,700000,2025-05-22,IT,Chennai,sample,Yes,2025-09-08 11:49:44,Sent
+3,2,developer,9000,2025-09-19,IT,Chennai,sample,Yes,2025-09-08 12:23:25,Sent
+4,6,Data Analyst,70000,2025-09-17,IT,Chennai,Leave,Yes,2025-09-09 11:03:51,Sent
+5,7,Data Analyst,70000,2025-09-17,IT,Chennai,Good ,Yes,2025-09-09 11:09:09,Sent
+6,8,Data Analyst,70000,2025-09-10,IT,Chennai,goof,Yes,2025-09-09 11:19:37,Sent
+7,9,Data Analyst,100000,2025-09-20,IT,Chennai,leave for sat and sun,Yes,2025-09-09 12:19:22,Sent
+8,11,Data Analyst,90000,2025-09-13,IT,Chennai,Health Insurance ,Yes,2025-09-09 16:56:53,Sent
+9,12,Data Analyst,100000,2025-09-12,IT,Chennai,Sample,Yes,2025-09-09 17:11:28,Sent
+10,10,Data Analyst,900000,2025-09-25,IT,Chennai,sample,Yes,2025-09-09 17:34:59,Sent
+11,13,Data Analyst,9000000,2025-09-18,IT,Chennai,,Yes,2025-09-09 17:52:36,Sent
+12,14,Senior Developer,900000,2025-09-25,IT,Chennai,vacation holiday,Yes,2025-09-10 15:12:15,Sent

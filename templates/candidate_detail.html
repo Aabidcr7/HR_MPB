@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}{{ candidate.name }} - Candidate Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header Section -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user me-2"></i>{{ candidate.name }}
+                        <span class="badge bg-{% if candidate.stage == 'Applied' %}secondary{% elif candidate.stage == 'Screening' %}warning{% elif candidate.stage == 'Interview' %}info{% elif candidate.stage == 'Offer' %}primary{% elif candidate.stage == 'Onboarded' %}success{% elif candidate.stage == 'Hold' %}warning{% elif candidate.stage == 'Rejected' %}danger{% else %}secondary{% endif %} ms-2">
+                            {{ candidate.stage }}
+                        </span>
+                    </h4>
+                    <div>
+                        <a href="{{ url_for('candidates_page') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Candidates
+                        </a>
+                        {% if candidate.stage == 'Applied' %}
+                        <a href="{{ url_for('screening_form', cand_id=candidate.id) }}" class="btn btn-warning">
+                            <i class="fas fa-search me-1"></i>Start Screening
+                        </a>
+                        {% elif candidate.stage == 'Screening' %}
+                        <a href="{{ url_for('interview_form', cand_id=candidate.id) }}" class="btn btn-info">
+                            <i class="fas fa-comments me-1"></i>Conduct Interview
+                        </a>
+                        {% elif candidate.stage == 'Interview' %}
+                        <a href="{{ url_for('offer_form', cand_id=candidate.id) }}" class="btn btn-primary">
+                            <i class="fas fa-handshake me-1"></i>Create Offer
+                        </a>
+                        {% elif candidate.stage == 'Offer' %}
+                        <a href="{{ url_for('onboarding', cand_id=candidate.id) }}" class="btn btn-success">
+                            <i class="fas fa-user-plus me-1"></i>Onboard
+                        </a>
+                        {% elif candidate.stage == 'Onboarded' %}
+                        <a href="{{ url_for('resignation_form', cand_id=candidate.id) }}" class="btn btn-danger">
+                            <i class="fas fa-sign-out-alt me-1"></i>Process Resignation
+                        </a>
+                        {% elif candidate.stage == 'Screening Hold' %}
+                        <a href="{{ url_for('screening_form', cand_id=candidate.id) }}" class="btn btn-warning">
+                            <i class="fas fa-redo me-1"></i>Screen Again
+                        </a>
+                        {% elif candidate.stage == 'Interview Hold' %}
+                        <a href="{{ url_for('interview_form', cand_id=candidate.id) }}" class="btn btn-warning">
+                            <i class="fas fa-redo me-1"></i>Interview Again
+                        </a>
+                        {% elif candidate.stage == 'Rejected' %}
+                        <span class="text-muted">No actions available for rejected candidates</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Personal Information -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i>Personal Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Full Name:</strong></div>
+                                <div class="col-sm-8">{{ candidate.name }}</div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Email:</strong></div>
+                                <div class="col-sm-8">
+                                    <a href="mailto:{{ candidate.email }}">{{ candidate.email }}</a>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Phone:</strong></div>
+                                <div class="col-sm-8">
+                                    <a href="tel:{{ candidate.phone }}">{{ candidate.phone }}</a>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Experience:</strong></div>
+                                <div class="col-sm-8">{{ candidate.experience }} years</div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Source:</strong></div>
+                                <div class="col-sm-8">
+                                    <span class="badge bg-info">{{ candidate.source or 'Not specified' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Salary Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Salary Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Current Salary:</strong></div>
+                                <div class="col-sm-8">{{ candidate.current_salary or 'Not specified' }}</div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Expected Salary:</strong></div>
+                                <div class="col-sm-8">{{ candidate.expected_salary or 'Not specified' }}</div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Notice Period:</strong></div>
+                                <div class="col-sm-8">{{ candidate.notice_period or 'Not specified' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Professional Information -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Professional Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Applied For:</strong></div>
+                                <div class="col-sm-8">
+                                    <a href="{{ url_for('requisition_detail', req_id=candidate.requisition_id) }}" class="text-decoration-none">
+                                        REQ-{{ candidate.requisition_id }}
+                                    </a>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Applied Date:</strong></div>
+                                <div class="col-sm-8">{{ candidate.applied_date }}</div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Current Stage:</strong></div>
+                                <div class="col-sm-8">
+                                    <span class="badge bg-{% if candidate.stage == 'Applied' %}secondary{% elif candidate.stage == 'Screening' %}warning{% elif candidate.stage == 'Interview' %}info{% elif candidate.stage == 'Offer' %}primary{% elif candidate.stage == 'Onboarded' %}success{% elif candidate.stage == 'Hold' %}warning{% elif candidate.stage == 'Rejected' %}danger{% else %}secondary{% endif %}">
+                                        {{ candidate.stage }}
+                                    </span>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Candidate ID:</strong></div>
+                                <div class="col-sm-8"><code>{{ candidate.id }}</code></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Skills -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Skills & Expertise</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ candidate.skills or 'No skills specified' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screening Details -->
+            {% if screening %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-search me-2"></i>Screening Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Screening Date:</strong> {{ screening.get('screening_date', 'N/A').split()[0] if screening.get('screening_date') else 'N/A' }}</p>
+                            <p><strong>Screener:</strong> {{ screening.get('screener_name', 'N/A') }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge bg-{% if screening.get('status') == 'Shortlisted' %}success{% elif screening.get('status') == 'Rejected' %}danger{% elif screening.get('status') == 'Hold' %}warning{% else %}secondary{% endif %}">
+                                    {{ screening.get('status', 'N/A') }}
+                                </span>
+                            </p>
+                            <p><strong>Overall Score:</strong> {{ screening.get('overall_score', 'N/A') }}/10</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Technical Skills:</strong> {{ screening.get('technical_score', 'N/A') }}/10</p>
+                            <p><strong>Communication:</strong> {{ screening.get('communication_score', 'N/A') }}/10</p>
+                            <p><strong>Experience Match:</strong> {{ screening.get('experience_score', 'N/A') }}/10</p>
+                        </div>
+                    </div>
+                    {% if screening.get('comments') %}
+                    <div class="mt-3">
+                        <h6>Comments:</h6>
+                        <p class="text-muted">{{ screening.comments }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Interview Details -->
+            {% if interview %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Interview Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Interview Date:</strong> {{ interview.get('interview_date', 'N/A').split()[0] if interview.get('interview_date') else 'N/A' }}</p>
+                            <p><strong>Interviewer:</strong> {{ interview.get('interviewer_name', 'N/A') }}</p>
+                            <p><strong>Interview Type:</strong> {{ interview.get('interview_type', 'N/A') }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge bg-{% if interview.get('status') == 'Shortlisted' %}success{% elif interview.get('status') == 'Rejected' %}danger{% elif interview.get('status') == 'Hold' %}warning{% else %}secondary{% endif %}">
+                                    {{ interview.get('status', 'N/A') }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Overall Score:</strong> {{ interview.get('overall_score', 'N/A') }}/10</p>
+                            <p><strong>Technical Score:</strong> {{ interview.get('technical_score', 'N/A') }}/10</p>
+                            <p><strong>Problem Solving:</strong> {{ interview.get('problem_solving_score', 'N/A') }}/10</p>
+                            <p><strong>Communication:</strong> {{ interview.get('communication_score', 'N/A') }}/10</p>
+                            <p><strong>Cultural Fit:</strong> {{ interview.get('cultural_fit_score', 'N/A') }}/10</p>
+                        </div>
+                    </div>
+                    {% if interview.get('comments') %}
+                    <div class="mt-3">
+                        <h6>Interview Comments:</h6>
+                        <p class="text-muted">{{ interview.comments }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Resume Section -->
+            {% if candidate.resume_filename %}
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file-pdf me-2"></i>Resume</h5>
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm" onclick="toggleResumePreview()">
+                            <i class="fas fa-eye me-1"></i>Toggle Preview
+                        </button>
+                        <a href="{{ url_for('get_resume', cand_id=candidate.id) }}" class="btn btn-outline-secondary btn-sm" download>
+                            <i class="fas fa-download me-1"></i>Download
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="resumePreview" style="display: none;">
+                        <div class="text-center">
+                            {% set file_ext = candidate.resume_filename.lower().split('.')[-1] %}
+                            {% if file_ext == 'pdf' %}
+                                <iframe src="{{ url_for('preview_resume', cand_id=candidate.id) }}" 
+                                        width="100%" 
+                                        height="600px" 
+                                        style="border: 1px solid #ddd; border-radius: 5px;"
+                                        type="application/pdf">
+                                    <p>Your browser does not support PDF viewing. 
+                                       <a href="{{ url_for('get_resume', cand_id=candidate.id) }}" target="_blank">Click here to download the resume</a>
+                                    </p>
+                                </iframe>
+                            {% elif file_ext in ['doc', 'docx'] %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Word documents cannot be previewed inline. 
+                                    <a href="{{ url_for('get_resume', cand_id=candidate.id) }}" target="_blank" class="btn btn-primary btn-sm ms-2">
+                                        <i class="fas fa-download me-1"></i>Download to View
+                                    </a>
+                                </div>
+                            {% elif file_ext == 'txt' %}
+                                <iframe src="{{ url_for('preview_resume', cand_id=candidate.id) }}" 
+                                        width="100%" 
+                                        height="400px" 
+                                        style="border: 1px solid #ddd; border-radius: 5px;">
+                                    <p>Your browser does not support text viewing. 
+                                       <a href="{{ url_for('get_resume', cand_id=candidate.id) }}" target="_blank">Click here to download the resume</a>
+                                    </p>
+                                </iframe>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    This file type cannot be previewed. 
+                                    <a href="{{ url_for('get_resume', cand_id=candidate.id) }}" target="_blank" class="btn btn-primary btn-sm ms-2">
+                                        <i class="fas fa-download me-1"></i>Download to View
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div id="resumeInfo">
+                        <p class="text-muted">
+                            <i class="fas fa-file-pdf me-2"></i>
+                            Resume file: <strong>{{ candidate.resume_filename }}</strong>
+                        </p>
+                        <p class="text-muted">Click "Toggle Preview" to view the resume inline or "Download" to save it.</p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-pdf me-2"></i>Resume</h5>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fas fa-file-pdf fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No resume uploaded for this candidate.</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if screening_history and screening_history|length > 1 %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Screening History</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Screener</th>
+                                    <th>Status</th>
+                                    <th>Technical</th>
+                                    <th>Communication</th>
+                                    <th>Experience</th>
+                                    <th>Overall</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in screening_history %}
+                                <tr>
+                                    <td>{{ s.get('screening_date','') }}</td>
+                                    <td>{{ s.get('screener_name','') }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if s.get('status') == 'Shortlisted' %}success{% elif s.get('status') == 'Rejected' %}danger{% elif s.get('status') == 'Hold' %}warning{% else %}secondary{% endif %}">
+                                            {{ s.get('status','') }}
+                                        </span>
+                                    </td>
+                                    <td>{{ s.get('technical_score','') }}</td>
+                                    <td>{{ s.get('communication_score','') }}</td>
+                                    <td>{{ s.get('experience_score','') }}</td>
+                                    <td>{{ s.get('overall_score','') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if interview_history and interview_history|length > 1 %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Interview History</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Interviewer</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Tech</th>
+                                    <th>Problem Solving</th>
+                                    <th>Comm</th>
+                                    <th>Culture</th>
+                                    <th>Overall</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for iv in interview_history %}
+                                <tr>
+                                    <td>{{ iv.get('interview_date','') }}</td>
+                                    <td>{{ iv.get('interviewer_name','') }}</td>
+                                    <td>{{ iv.get('interview_type','') }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if iv.get('status') == 'Shortlisted' %}success{% elif iv.get('status') == 'Rejected' %}danger{% elif iv.get('status') == 'Hold' %}warning{% else %}secondary{% endif %}">
+                                            {{ iv.get('status','') }}
+                                        </span>
+                                    </td>
+                                    <td>{{ iv.get('technical_score','') }}</td>
+                                    <td>{{ iv.get('problem_solving_score','') }}</td>
+                                    <td>{{ iv.get('communication_score','') }}</td>
+                                    <td>{{ iv.get('cultural_fit_score','') }}</td>
+                                    <td>{{ iv.get('overall_score','') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleResumePreview() {
+    const preview = document.getElementById('resumePreview');
+    const info = document.getElementById('resumeInfo');
+    const button = event.target.closest('button');
+    
+    if (preview.style.display === 'none' || preview.style.display === '') {
+        preview.style.display = 'block';
+        info.style.display = 'none';
+        button.innerHTML = '<i class="fas fa-eye-slash me-1"></i>Hide Preview';
+        button.classList.remove('btn-outline-primary');
+        button.classList.add('btn-primary');
+    } else {
+        preview.style.display = 'none';
+        info.style.display = 'block';
+        button.innerHTML = '<i class="fas fa-eye me-1"></i>Toggle Preview';
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-outline-primary');
+    }
+}
+</script>
+{% endblock %}
