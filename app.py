@@ -594,7 +594,32 @@ def update_onboarding():
     """Update onboarding checklist"""
     try:
         candidate_id = int(request.form['candidate_id'])
-        
+        # Handle signed offer letter upload (optional)
+        signed_offer_filename = None
+        try:
+            if 'signed_offer' in request.files:
+                file = request.files['signed_offer']
+                if file and file.filename and file.filename != '' and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    file.save(os.path.join(UPLOAD_FOLDER, unique_filename))
+                    signed_offer_filename = unique_filename
+        except Exception as e:
+            logging.error(f"Error saving signed offer: {e}")
+
+        # If no new file uploaded, try to reuse latest from onboarding history
+        if not signed_offer_filename:
+            try:
+                existing_onboarding_df = read_csv_safe(os.path.join(CSV_FOLDER, 'onboarding.csv'))
+                existing_rows = existing_onboarding_df[existing_onboarding_df['candidate_id'] == candidate_id]
+                if not existing_rows.empty and 'signed_offer_filename' in existing_rows.columns:
+                    last_row = existing_rows.iloc[-1]
+                    prev_file = last_row.get('signed_offer_filename', '')
+                    if isinstance(prev_file, str) and prev_file:
+                        signed_offer_filename = prev_file
+            except Exception:
+                pass
+
         onboarding_data = {
             'id': get_next_id(os.path.join(CSV_FOLDER, 'onboarding.csv')),
             'candidate_id': candidate_id,
@@ -606,7 +631,8 @@ def update_onboarding():
             'system_access_provided': request.form.get('system_access_provided', 'No'),
             'comments': request.form['comments'],
             'onboarding_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'hr_representative': request.form['hr_representative']
+            'hr_representative': request.form['hr_representative'],
+            'signed_offer_filename': signed_offer_filename or ''
         }
         
         if append_to_csv(onboarding_data, os.path.join(CSV_FOLDER, 'onboarding.csv')):
@@ -668,6 +694,28 @@ def submit_resignation():
         final_settlement = request.form.get('final_settlement', 'Pending')
         completion_status = 'Completed' if (exit_interview == 'Yes' and laptop_ret == 'Yes' and id_card_ret == 'Yes' and clearance == 'Yes' and final_settlement == 'Completed') else 'In Progress'
 
+        # Optional new fields: notice period and end date
+        notice_period_days = request.form.get('notice_period_days', '')
+        notice_period_end_date = request.form.get('notice_period_end_date', '')
+
+        # Handle resignation documents upload
+        def save_optional_upload(field_name):
+            try:
+                if field_name in request.files:
+                    f = request.files[field_name]
+                    if f and f.filename and f.filename != '' and allowed_file(f.filename):
+                        filename = secure_filename(f.filename)
+                        unique_name = f"{uuid.uuid4()}_{filename}"
+                        f.save(os.path.join(UPLOAD_FOLDER, unique_name))
+                        return unique_name
+            except Exception as e:
+                logging.error(f"Error saving file for {field_name}: {e}")
+            return ''
+
+        resignation_letter_file = save_optional_upload('resignation_letter')
+        acceptance_letter_file = save_optional_upload('resignation_acceptance_letter')
+        relieving_letter_file = save_optional_upload('relieving_letter')
+
         resignation_data = {
             'id': get_next_id(os.path.join(CSV_FOLDER, 'resignations.csv')),
             'candidate_id': candidate_id,
@@ -683,6 +731,11 @@ def submit_resignation():
             'hr_representative': request.form['hr_representative'],
             'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'completion_status': completion_status,
+            'notice_period_days': notice_period_days,
+            'notice_period_end_date': notice_period_end_date,
+            'resignation_letter_filename': resignation_letter_file,
+            'acceptance_letter_filename': acceptance_letter_file,
+            'relieving_letter_filename': relieving_letter_file,
         }
         
         if append_to_csv(resignation_data, os.path.join(CSV_FOLDER, 'resignations.csv')):
@@ -815,6 +868,21 @@ def employees_page():
                 'benefits': offer.get('benefits', 'N/A'),
                 'offer_date': offer.get('offer_date', 'N/A')
             })
+        # Attach latest resignation document filenames if resigned
+        if employee.get('stage') == 'Resigned':
+            resignations_df = read_csv_safe(os.path.join(CSV_FOLDER, 'resignations.csv'))
+            res_rows = resignations_df[resignations_df['candidate_id'] == employee['id']]
+            if not res_rows.empty:
+                try:
+                    res_rows = res_rows.sort_values(by='updated_at')
+                except Exception:
+                    pass
+                latest = res_rows.iloc[-1].to_dict()
+                employee.update({
+                    'resignation_letter_filename': latest.get('resignation_letter_filename', ''),
+                    'acceptance_letter_filename': latest.get('acceptance_letter_filename', ''),
+                    'relieving_letter_filename': latest.get('relieving_letter_filename', ''),
+                })
     
     return render_template('employees.html', employees=employees)
 
@@ -888,6 +956,62 @@ def resignation_detail(cand_id):
     latest = history[-1] if history else None
 
     return render_template('resignation_detail.html', candidate=candidate, resignation=latest, resignation_history=history)
+
+# Resignation documents routes
+@app.route('/resignation-doc/<int:cand_id>/<doc_type>/download')
+def download_resignation_doc(cand_id, doc_type):
+    """Download resignation-related documents: resignation_letter | acceptance_letter | relieving_letter"""
+    valid_types = {
+        'resignation_letter': 'resignation_letter_filename',
+        'acceptance_letter': 'acceptance_letter_filename',
+        'relieving_letter': 'relieving_letter_filename',
+    }
+    if doc_type not in valid_types:
+        flash('Invalid document type', 'error')
+        return redirect(request.referrer or url_for('resignation_detail', cand_id=cand_id))
+
+    resignations_df = read_csv_safe(os.path.join(CSV_FOLDER, 'resignations.csv'))
+    rows = resignations_df[resignations_df['candidate_id'] == cand_id]
+    if rows.empty or valid_types[doc_type] not in rows.columns:
+        flash('Document not found', 'error')
+        return redirect(request.referrer or url_for('resignation_detail', cand_id=cand_id))
+    filename = rows.iloc[-1].get(valid_types[doc_type], '')
+    if not filename:
+        flash('Document not found', 'error')
+        return redirect(request.referrer or url_for('resignation_detail', cand_id=cand_id))
+    try:
+        return send_file(os.path.join(UPLOAD_FOLDER, filename), as_attachment=True)
+    except FileNotFoundError:
+        flash('File not found', 'error')
+        return redirect(request.referrer or url_for('resignation_detail', cand_id=cand_id))
+
+@app.route('/resignation-doc/<int:cand_id>/<doc_type>/preview')
+def preview_resignation_doc(cand_id, doc_type):
+    valid_types = {
+        'resignation_letter': 'resignation_letter_filename',
+        'acceptance_letter': 'acceptance_letter_filename',
+        'relieving_letter': 'relieving_letter_filename',
+    }
+    if doc_type not in valid_types:
+        return "Invalid document type", 400
+    resignations_df = read_csv_safe(os.path.join(CSV_FOLDER, 'resignations.csv'))
+    rows = resignations_df[resignations_df['candidate_id'] == cand_id]
+    if rows.empty or valid_types[doc_type] not in rows.columns:
+        return "Document not found", 404
+    filename = rows.iloc[-1].get(valid_types[doc_type], '')
+    if not filename:
+        return "Document not found", 404
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    if not os.path.exists(file_path):
+        return "Document not found", 404
+    file_ext = filename.lower().split('.')[-1]
+    content_types = {
+        'pdf': 'application/pdf',
+        'doc': 'application/msword',
+        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'txt': 'text/plain',
+    }
+    return send_file(file_path, mimetype=content_types.get(file_ext, 'application/octet-stream'), as_attachment=False)
 
 @app.route('/add-employee-direct', methods=['POST'])
 def add_employee_direct():
@@ -1035,7 +1159,76 @@ def employee_detail(emp_id):
             'offer_date': offer.get('offer_date', 'N/A')
         })
     
+    # Fetch latest onboarding info to attach signed offer filename
+    onboarding_df = read_csv_safe(os.path.join(CSV_FOLDER, 'onboarding.csv'))
+    onboarding_rows = onboarding_df[onboarding_df['candidate_id'] == emp_id]
+    if not onboarding_rows.empty and 'signed_offer_filename' in onboarding_rows.columns:
+        try:
+            onboarding_rows = onboarding_rows.sort_values(by='onboarding_date')
+        except Exception:
+            pass
+        latest_onboarding = onboarding_rows.iloc[-1].to_dict()
+        employee['signed_offer_filename'] = latest_onboarding.get('signed_offer_filename', '')
+
+    # If resigned, attach resignation document filenames
+    resignations_df = read_csv_safe(os.path.join(CSV_FOLDER, 'resignations.csv'))
+    res_rows = resignations_df[resignations_df['candidate_id'] == emp_id]
+    if not res_rows.empty:
+        try:
+            res_rows = res_rows.sort_values(by='updated_at')
+        except Exception:
+            pass
+        latest_res = res_rows.iloc[-1].to_dict()
+        employee['stage'] = 'Resigned'
+        employee['resignation_letter_filename'] = latest_res.get('resignation_letter_filename', '')
+        employee['acceptance_letter_filename'] = latest_res.get('acceptance_letter_filename', '')
+        employee['relieving_letter_filename'] = latest_res.get('relieving_letter_filename', '')
+    
     return render_template('employee_detail.html', employee=employee)
+
+# Signed offer letter routes
+@app.route('/signed-offer/<int:cand_id>/download')
+def download_signed_offer(cand_id):
+    """Download the signed offer letter for the candidate"""
+    onboarding_df = read_csv_safe(os.path.join(CSV_FOLDER, 'onboarding.csv'))
+    rows = onboarding_df[onboarding_df['candidate_id'] == cand_id]
+    if rows.empty or 'signed_offer_filename' not in rows.columns:
+        flash('No signed offer on file for this employee.', 'error')
+        return redirect(request.referrer or url_for('employee_detail', emp_id=cand_id))
+    filename = rows.iloc[-1].get('signed_offer_filename', '')
+    if not filename:
+        flash('No signed offer on file for this employee.', 'error')
+        return redirect(request.referrer or url_for('employee_detail', emp_id=cand_id))
+    try:
+        return send_file(os.path.join(UPLOAD_FOLDER, filename), as_attachment=True)
+    except FileNotFoundError:
+        flash('Signed offer file not found!', 'error')
+        return redirect(request.referrer or url_for('employee_detail', emp_id=cand_id))
+
+@app.route('/signed-offer/<int:cand_id>/preview')
+def preview_signed_offer(cand_id):
+    """Inline preview for the signed offer letter"""
+    onboarding_df = read_csv_safe(os.path.join(CSV_FOLDER, 'onboarding.csv'))
+    rows = onboarding_df[onboarding_df['candidate_id'] == cand_id]
+    if rows.empty or 'signed_offer_filename' not in rows.columns:
+        return "Signed offer not found", 404
+    filename = rows.iloc[-1].get('signed_offer_filename', '')
+    if not filename:
+        return "Signed offer not found", 404
+
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    if not os.path.exists(file_path):
+        return "Signed offer not found", 404
+
+    file_ext = filename.lower().split('.')[-1]
+    content_types = {
+        'pdf': 'application/pdf',
+        'doc': 'application/msword',
+        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'txt': 'text/plain',
+    }
+    content_type = content_types.get(file_ext, 'application/octet-stream')
+    return send_file(file_path, mimetype=content_type, as_attachment=False)
 
 # Helper function to read CSV data as dictionaries for compatibility
 def read_csv_data(csv_file_path):

@@ -28,7 +28,7 @@
                     </div>
                 </div>
 
-                <form id="resignationForm" method="POST" action="{{ url_for('submit_resignation') }}">
+                <form id="resignationForm" method="POST" action="{{ url_for('submit_resignation') }}" enctype="multipart/form-data">
                     <input type="hidden" name="candidate_id" value="{{ candidate.id }}">
                     
                     <div class="row">
@@ -39,6 +39,17 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Last Working Date <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" name="last_working_date" value="{{ existing.last_working_date if existing else '' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Notice Period (days)</label>
+                            <input type="number" class="form-control" name="notice_period_days" min="0" value="{{ existing.notice_period_days if existing else '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Notice Period End Date</label>
+                            <input type="date" class="form-control" name="notice_period_end_date" value="{{ existing.notice_period_end_date if existing else '' }}">
                         </div>
                     </div>
 
@@ -108,6 +119,45 @@
                             <option value="{{ opt }}" {{ 'selected' if final_val == opt else '' }}>{{ opt }}</option>
                             {% endfor %}
                         </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="mb-3"><i class="fas fa-file-upload me-2"></i>Resignation Documents</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Resignation Letter</label>
+                                <input type="file" class="form-control" name="resignation_letter" accept=".pdf,.doc,.docx,.txt">
+                                {% if existing and existing.get('resignation_letter_filename') %}
+                                <div class="form-text mt-1">
+                                    Current: <strong>{{ existing.get('resignation_letter_filename') }}</strong>
+                                    <a class="ms-2" href="{{ url_for('preview_resignation_doc', cand_id=candidate.id, doc_type='resignation_letter') }}" target="_blank">Preview</a>
+                                    <a class="ms-2" href="{{ url_for('download_resignation_doc', cand_id=candidate.id, doc_type='resignation_letter') }}">Download</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Acceptance Letter</label>
+                                <input type="file" class="form-control" name="resignation_acceptance_letter" accept=".pdf,.doc,.docx,.txt">
+                                {% if existing and existing.get('acceptance_letter_filename') %}
+                                <div class="form-text mt-1">
+                                    Current: <strong>{{ existing.get('acceptance_letter_filename') }}</strong>
+                                    <a class="ms-2" href="{{ url_for('preview_resignation_doc', cand_id=candidate.id, doc_type='acceptance_letter') }}" target="_blank">Preview</a>
+                                    <a class="ms-2" href="{{ url_for('download_resignation_doc', cand_id=candidate.id, doc_type='acceptance_letter') }}">Download</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Relieving Letter</label>
+                                <input type="file" class="form-control" name="relieving_letter" accept=".pdf,.doc,.docx,.txt">
+                                {% if existing and existing.get('relieving_letter_filename') %}
+                                <div class="form-text mt-1">
+                                    Current: <strong>{{ existing.get('relieving_letter_filename') }}</strong>
+                                    <a class="ms-2" href="{{ url_for('preview_resignation_doc', cand_id=candidate.id, doc_type='relieving_letter') }}" target="_blank">Preview</a>
+                                    <a class="ms-2" href="{{ url_for('download_resignation_doc', cand_id=candidate.id, doc_type='relieving_letter') }}">Download</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mb-3">

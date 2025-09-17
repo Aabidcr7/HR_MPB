@@ -114,6 +114,18 @@
                                   placeholder="Add any additional notes, feedback, or special instructions...">{{ onboarding.get('comments', '') }}</textarea>
                     </div>
 
+                    <div class="mb-4">
+                        <label class="form-label">Signed Offer Letter (PDF/DOC/DOCX/TXT)</label>
+                        <input type="file" class="form-control" name="signed_offer" accept=".pdf,.doc,.docx,.txt">
+                        {% if onboarding and onboarding.get('signed_offer_filename') %}
+                        <div class="form-text mt-2">
+                            Current file: <strong>{{ onboarding.get('signed_offer_filename') }}</strong>
+                            <a href="{{ url_for('preview_signed_offer', cand_id=candidate.id) }}" target="_blank" class="ms-2">Preview</a>
+                            <a href="{{ url_for('download_signed_offer', cand_id=candidate.id) }}" class="ms-2">Download</a>
+                        </div>
+                        {% endif %}
+                    </div>
+
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
                         <strong>Note:</strong> Once all checklist items are completed, the employee's status will be updated to "Onboarded".

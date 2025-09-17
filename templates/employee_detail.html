@@ -10,7 +10,11 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-user me-2"></i>{{ employee.name }}
+                        {% if employee.get('stage','Onboarded') == 'Resigned' %}
+                        <span class="badge bg-danger ms-2">Resigned</span>
+                        {% else %}
                         <span class="badge bg-success ms-2">Active Employee</span>
+                        {% endif %}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -139,6 +143,122 @@
                         </p>
                         <p class="text-muted">Click "Toggle Preview" to view the resume inline or "Download" to save it.</p>
                     </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Signed Offer Letter -->
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file-signature me-2"></i>Signed Offer Letter</h5>
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm" onclick="toggleSignedOfferPreview()">
+                            <i class="fas fa-eye me-1"></i>Toggle Preview
+                        </button>
+                        <a href="{{ url_for('download_signed_offer', cand_id=employee.id) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-download me-1"></i>Download
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% set signed_offer = None %}
+                    {% set _ = signed_offer %}
+                    {% set has_file = False %}
+                    {% if employee.get('signed_offer_filename') %}
+                        {% set has_file = True %}
+                    {% endif %}
+
+                    <div id="signedOfferPreview" style="display: none;">
+                        {% if has_file %}
+                            {% set file_ext = employee.get('signed_offer_filename').lower().split('.')[-1] %}
+                            {% if file_ext == 'pdf' %}
+                                <iframe src="{{ url_for('preview_signed_offer', cand_id=employee.id) }}" width="100%" height="600px" style="border:1px solid #ddd; border-radius:5px;"></iframe>
+                            {% elif file_ext in ['doc','docx'] %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Word documents cannot be previewed inline. Please download to view.
+                                </div>
+                            {% elif file_ext == 'txt' %}
+                                <iframe src="{{ url_for('preview_signed_offer', cand_id=employee.id) }}" width="100%" height="400px" style="border:1px solid #ddd; border-radius:5px;"></iframe>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    This file type cannot be previewed.
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-secondary mb-0">
+                                No signed offer letter uploaded yet.
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div id="signedOfferInfo">
+                        {% if has_file %}
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-file-alt me-2"></i>
+                            File: <strong>{{ employee.get('signed_offer_filename') }}</strong>
+                        </p>
+                        {% else %}
+                        <p class="text-muted mb-0">No signed offer letter on file.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resignation Documents (if resigned) -->
+            {% if employee.get('stage') == 'Resigned' %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-folder-open me-2"></i>Resignation Documents</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Resignation Letter</strong>
+                            {% if employee.get('resignation_letter_filename') %}
+                                <div class="text-muted small">{{ employee.get('resignation_letter_filename') }}</div>
+                            {% else %}
+                                <div class="text-muted small">Not uploaded</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <button class="btn btn-outline-primary btn-sm" onclick="toggleResignDoc('resignation_letter')"><i class="fas fa-eye me-1"></i>Toggle Preview</button>
+                            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('download_resignation_doc', cand_id=employee.id, doc_type='resignation_letter') }}"><i class="fas fa-download me-1"></i>Download</a>
+                        </div>
+                    </div>
+                    <div id="preview_resignation_letter" style="display:none" class="mb-3"></div>
+
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Acceptance Letter</strong>
+                            {% if employee.get('acceptance_letter_filename') %}
+                                <div class="text-muted small">{{ employee.get('acceptance_letter_filename') }}</div>
+                            {% else %}
+                                <div class="text-muted small">Not uploaded</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <button class="btn btn-outline-primary btn-sm" onclick="toggleResignDoc('acceptance_letter')"><i class="fas fa-eye me-1"></i>Toggle Preview</button>
+                            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('download_resignation_doc', cand_id=employee.id, doc_type='acceptance_letter') }}"><i class="fas fa-download me-1"></i>Download</a>
+                        </div>
+                    </div>
+                    <div id="preview_acceptance_letter" style="display:none" class="mb-3"></div>
+
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Relieving Letter</strong>
+                            {% if employee.get('relieving_letter_filename') %}
+                                <div class="text-muted small">{{ employee.get('relieving_letter_filename') }}</div>
+                            {% else %}
+                                <div class="text-muted small">Not uploaded</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <button class="btn btn-outline-primary btn-sm" onclick="toggleResignDoc('relieving_letter')"><i class="fas fa-eye me-1"></i>Toggle Preview</button>
+                            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('download_resignation_doc', cand_id=employee.id, doc_type='relieving_letter') }}"><i class="fas fa-download me-1"></i>Download</a>
+                        </div>
+                    </div>
+                    <div id="preview_relieving_letter" style="display:none" class="mb-3"></div>
                 </div>
             </div>
             {% endif %}
@@ -296,5 +416,37 @@ function toggleEmployeeResumePreview() {
             button.classList.add('btn-outline-primary');
         }
     }
+}
+
+function toggleSignedOfferPreview() {
+    const preview = document.getElementById('signedOfferPreview');
+    const info = document.getElementById('signedOfferInfo');
+    const button = event.target.closest('button');
+    if (preview && info && button) {
+        if (preview.style.display === 'none' || preview.style.display === '') {
+            preview.style.display = 'block';
+            info.style.display = 'none';
+            button.innerHTML = '<i class="fas fa-eye-slash me-1"></i>Hide Preview';
+            button.classList.remove('btn-outline-primary');
+            button.classList.add('btn-primary');
+        } else {
+            preview.style.display = 'none';
+            info.style.display = 'block';
+            button.innerHTML = '<i class="fas fa-eye me-1"></i>Toggle Preview';
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-outline-primary');
+        }
+    }
+}
+
+function toggleResignDoc(type) {
+    const el = document.getElementById(`preview_${type}`);
+    if (!el) return;
+    if (el.dataset.loaded !== '1') {
+        // Lazy load iframe
+        el.innerHTML = `<iframe src="${type === 'resignation_letter' ? '{{ url_for('preview_resignation_doc', cand_id=employee.id, doc_type='resignation_letter') }}' : (type === 'acceptance_letter' ? '{{ url_for('preview_resignation_doc', cand_id=employee.id, doc_type='acceptance_letter') }}' : '{{ url_for('preview_resignation_doc', cand_id=employee.id, doc_type='relieving_letter') }}')}" width="100%" height="500px" style="border:1px solid #ddd; border-radius:5px;"></iframe>`;
+        el.dataset.loaded = '1';
+    }
+    el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
 }
 </script>
